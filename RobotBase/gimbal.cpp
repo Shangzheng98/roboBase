@@ -30,15 +30,6 @@ double OFFSET_Z = 0;
 double OFFSET_PITCH = 0;
 double OFFSET_YAW = 0;
 
-int OFFSET_INT_X = 5000;
-int OFFSET_INT_Y = 5000;
-int OFFSET_INT_Z = 5000;
-int OFFSET_INT_PITCH = 5000;
-int OFFSET_INT_YAW = 5000;
-
-int ARMOR_WIDTH = 120;
-int ARMOR_HEIGHT = 60;
-
 //弹速,比真实弹速小2-3可能效果更好
 int INIT_V = 12;
 
@@ -47,35 +38,10 @@ pthread_spinlock_t gimbal_to_chassis_lock = {};
 
 rs2_intrinsics intrin_rgb;
 
+
 Gimbal::Gimbal(std::shared_ptr<roborts_sdk::Handle> handle)
         : handle_(handle) {
     SDK_Init();
-    //空间坐标卡尔曼滤波初始化
-    KF_space = cv::KalmanFilter(4, 2, 0);
-    KF_space.transitionMatrix = (cv::Mat_<float>(4, 4) <<
-                                                       1, 0, 1, 0,
-            0, 1, 0, 1,
-            0, 0, 1, 0,
-            0, 0, 0, 1);
-    cv::setIdentity(KF_space.measurementMatrix);
-    cv::setIdentity(KF_space.processNoiseCov, cv::Scalar::all(1e-4 * 5)); //噪点的处理值
-    cv::setIdentity(KF_space.measurementNoiseCov, cv::Scalar::all(1e-1));
-    cv::setIdentity(KF_space.errorCovPost, cv::Scalar::all(1));
-    cv::randn(KF_space.statePost, cv::Scalar::all(0), cv::Scalar::all(0.1));
-
-    //偏移值卡尔曼滤波初始化
-    KF_offset = cv::KalmanFilter(2, 1, 0);
-    KF_offset.transitionMatrix = (cv::Mat_<float>(2, 2) <<
-                                                        1, 0,
-            0, 1);
-
-    cv::setIdentity(KF_offset.measurementMatrix);
-    cv::setIdentity(KF_offset.processNoiseCov, cv::Scalar::all(1e-4 * 5));
-    cv::setIdentity(KF_offset.measurementNoiseCov, cv::Scalar::all(1e-1));
-    cv::setIdentity(KF_offset.errorCovPost, cv::Scalar::all(1));
-    cv::randn(KF_offset.statePost, cv::Scalar::all(0), cv::Scalar::all(0.1));
-
-
     pthread_spin_init(&gimbal_to_chassis_lock, PTHREAD_PROCESS_PRIVATE);
 }
 
@@ -157,7 +123,7 @@ void Gimbal::GimbalInfoCallback(const std::shared_ptr<roborts_sdk::cmd_gimbal_in
 }
 
 void Gimbal::VisionInfoCallback(const std::shared_ptr<roborts_sdk::cmd_vision_info> vision_info) {
-    current_task = vision_info->vision_mode;
+    current_mode = vision_info->vision_mode;
     //printf("task:%d\n", current_task);
 }
 
@@ -247,8 +213,6 @@ bool Gimbal::CtrlShoot(uint8_t mode, uint8_t number) {
 }
 
 
-void print_gimbal_fps();
-
 //air friction is considered
 float BulletModel(float x, float v, float angle) { //x:m,v:m/s,angle:rad
     float t, y;
@@ -280,27 +244,22 @@ float GetPitch(float x, float y, float v) {
 
 }
 
-struct SpacePointRecord {
-    double x;
-    double y; //对于realsense和云台来说是z轴
-    std::chrono::steady_clock::time_point time;
-};
 
 void Gimbal::AimAtArmor(int x, int y, cv::Mat depth_frame, bool compensation, bool prediction, bool shoot) {
 
     //用作校准相机,5000为归零点
-    if (DEBUG_ENABLE) {
-        if (OFFSET_INT_X != 5000)
-            OFFSET_X = ((double) OFFSET_INT_X - 5000);
-        if (OFFSET_INT_Y != 5000)
-            OFFSET_Y = ((double) OFFSET_INT_Y - 5000);
-        if (OFFSET_INT_Z != 5000)
-            OFFSET_Z = ((double) OFFSET_INT_Z - 5000);
-        if (OFFSET_INT_YAW != 5000)
-            OFFSET_YAW = ((double) OFFSET_INT_YAW - 5000);
-        if (OFFSET_INT_PITCH != 5000)
-            OFFSET_PITCH = ((double) OFFSET_INT_PITCH - 5000);
-    }
+//    if (DEBUG_ENABLE) {
+//        if (OFFSET_INT_X != 5000)
+//            OFFSET_X = ((double) OFFSET_INT_X - 5000);
+//        if (OFFSET_INT_Y != 5000)
+//            OFFSET_Y = ((double) OFFSET_INT_Y - 5000);
+//        if (OFFSET_INT_Z != 5000)
+//            OFFSET_Z = ((double) OFFSET_INT_Z - 5000);
+//        if (OFFSET_INT_YAW != 5000)
+//            OFFSET_YAW = ((double) OFFSET_INT_YAW - 5000);
+//        if (OFFSET_INT_PITCH != 5000)
+//            OFFSET_PITCH = ((double) OFFSET_INT_PITCH - 5000);
+//    }
 
     GimbalAngle gimbal_angle = {};
 
@@ -333,117 +292,6 @@ void Gimbal::AimAtArmor(int x, int y, cv::Mat depth_frame, bool compensation, bo
     target_3d.y = rgb_points[1] / 10;
     target_3d.z = rgb_points[2] / 10;
 
-    //下面是预测代码
-    //有两个修改思路,一个是使用真实角速度配合卡尔曼滤波代替掉真实坐标配合卡尔曼滤波
-    //另一个是使用realsense提供的加速度来计算角度
-    //尽管随着时间积累会造成误差,因为我们使用相对坐标,所以对于云台来说不是问题
-    //同时,调整一些参数可能会有效果
-
-    //记录3帧的值
-    static SpacePointRecord pre_points[3] = {};
-    static int last_point = 0;
-    if (prediction) {
-        SpacePointRecord space_point;
-        //理论上来说这里不需要加锁
-        pthread_spin_lock(&gimbal_to_chassis_lock);
-        //将相对云台的空间坐标转换为相对地盘的空间坐标
-        space_point.x = target_3d.x * cos(gimbal_to_chassis_angle * D2R)
-                        - (target_3d.z - 5) * sin(gimbal_to_chassis_angle * D2R);
-        space_point.y = target_3d.x * sin(gimbal_to_chassis_angle * D2R)
-                        + (target_3d.z - 5) * cos(gimbal_to_chassis_angle * D2R);
-        pthread_spin_unlock(&gimbal_to_chassis_lock);
-        space_point.time = std::chrono::steady_clock::now();
-
-        //卡尔曼滤波处理空间坐标
-//		cv::Mat measurement_point = cv::Mat::zeros(2, 1, CV_32F);
-//		measurement_point.at<float>(0) = (float)space_point.x;
-//		measurement_point.at<float>(1) = (float)space_point.y;
-//		KF_space.correct(measurement_point);
-//		cv::Mat prediction_point = KF_space.predict();
-//		cv::Point2f predictPt = cv::Point2f(prediction_point.at<float>(0), prediction_point.at<float>(1));
-
-//		space_point.x = predictPt.x;
-//		space_point.y = predictPt.y;
-
-        //printf("%f, space: %f, %f\n", gimbal_to_chassis_angle, space_point.x, space_point.y);
-
-        //计算3帧之间的平均速度(二维向量)
-        double target_speed[2][2] = {};
-        bool can_predict = true;
-        for (int i = 0, j = (last_point + 1) % 3; i < 2; i++, j++) {
-            if ((pre_points[j % 3].x == 0 && pre_points[j % 3].y == 0) ||
-                (pre_points[(j + 1) % 3].x == 0 && pre_points[(j + 1) % 3].y == 0)) {
-                //记录不够3帧,不进行预测
-                can_predict = false;
-                break;
-            }
-            double time_spawn = std::chrono::duration_cast<std::chrono::duration<double>>(
-                    pre_points[(j + 1) % 3].time - pre_points[j % 3].time).count();
-            target_speed[i][0] = (pre_points[(j + 1) % 3].x - pre_points[j % 3].x) / time_spawn;
-            target_speed[i][1] = (pre_points[(j + 1) % 3].y - pre_points[j % 3].y) / time_spawn;
-            if (time_spawn >= 0.05) {
-                //两帧之间相差炒锅0.05秒,不预测并且清空记录
-                can_predict = false;
-                memset(&pre_points, 0, sizeof(SpacePointRecord) * 3);
-                break;
-            }
-        }
-
-        last_point++;
-        if (last_point >= 3)
-            last_point = 0;
-        memcpy(&pre_points[last_point], &space_point, sizeof(SpacePointRecord));
-        if (can_predict) {
-            for (int i = 0; i < 4, false; i++) {
-                if (target_speed[i][0] * target_speed[i + 1][0] < 0) {
-                    //如果两个x轴速度的符号不一样,认为车改变了方向,不进行预测
-                    //也许没有必要处理这种情况
-                    //can_predict = false;
-                    //应该没有必要清空数据
-                    //memset(&pre_points, 0, sizeof(SpacePointRecord) * 10);
-                    break;
-                }
-            }
-        }
-
-        if (can_predict) {
-            //算出3帧的平均速度
-            double mean_speed[2] = {};
-            for (int i = 0; i < 2; i++) {
-                mean_speed[0] += target_speed[i][0];
-                mean_speed[1] += target_speed[i][1];
-            }
-            mean_speed[0] /= 2;
-            mean_speed[1] /= 2;
-
-            //算出飞行时间,0.1是多计算的时间,可以调整
-            double bullet_flight_time = ((double) target_3d.z) / 100 / INIT_V + 0.1;
-            space_point.x += mean_speed[0] * bullet_flight_time;
-            space_point.y += mean_speed[1] * bullet_flight_time;
-
-            //同样应该没有必要加锁
-            pthread_spin_lock(&gimbal_to_chassis_lock);
-            //x轴的偏移量
-            double p_x_offset = target_3d.x -
-                                (space_point.x * cos(-gimbal_to_chassis_angle * D2R) -
-                                 space_point.y * sin(-gimbal_to_chassis_angle * D2R));
-            pthread_spin_unlock(&gimbal_to_chassis_lock);
-
-            //卡尔曼滤波处理偏移量
-            cv::Mat measurement_offset = cv::Mat::zeros(1, 1, CV_32F);
-            measurement_offset.at<float>(0) = (float) p_x_offset;
-            KF_offset.correct(measurement_offset);
-            cv::Mat prediction_offset = KF_offset.predict();
-            double tmp = prediction_offset.at<float>(0);
-            //printf("prediction_offset = %f, %f\n", p_x_offset, tmp);
-
-            target_3d.x -= (tmp);//space_point.x* cos(-gimbal_to_chassis_angle * D2R) - space_point.y* sin(-gimbal_to_chassis_angle * D2R);
-            //target_3d.x -= p_x_offset;
-            //应该不需要处理z轴数据
-            //target_3d.z = (space_point.x * sin(-gimbal_to_chassis_angle * D2R) + space_point.y * cos(-gimbal_to_chassis_angle * D2R));
-        }
-    }
-
     float pitch = 0;
     if (compensation)
         //重力补偿
@@ -467,6 +315,18 @@ void Gimbal::AimAtArmor(int x, int y, cv::Mat depth_frame, bool compensation, bo
 //		gimbal->CtrlShoot(roborts_sdk::SHOOT_ONCE, 1);
 
     //print_gimbal_fps();
+}
+
+int Gimbal::getCurrentMode() {
+    return current_mode;
+}
+
+int Gimbal::getRemainTime() {
+    return remain_time;
+}
+
+int Gimbal::getId() {
+    return id;
 }
 
 
