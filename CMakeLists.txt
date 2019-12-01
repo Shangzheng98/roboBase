@@ -14,10 +14,6 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 
 add_executable(RobotBase
-        RobotBase/armor_detection/armor_detection_node.cpp
-        RobotBase/armor_detection/constraint_set.cpp
-        RobotBase/auto_aiming.cpp
-        RobotBase/big_buff.cpp
         RobotBase/chassis.cpp
         RobotBase/gimbal.cpp
         RobotBase/iniparser/dictionary.c
@@ -28,7 +24,7 @@ add_executable(RobotBase
         RobotBase/roborts_sdk/dispatch/handle.cpp
         RobotBase/roborts_sdk/hardware/serial_device.cpp
         RobotBase/roborts_sdk/protocol/protocol.cpp
-        )
+        RobotBase/vision/big_buff.cpp RobotBase/vision/big_buff.h RobotBase/vision/vision_main.cpp RobotBase/vision/vision_main.h)
 target_link_libraries(RobotBase glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})
@@ -43,11 +39,10 @@ if(ARM OR AARCH64)
     message(ARM and AARCH64)
     SET(CMAKE_BUILD_TYPE Release)
     message(FATAL_ERROR "CMAKE_BUILD_TYPE='${CMAKE_BUILD_TYPE}' is defined and non-empty ")
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=gnu++11")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=gnu++14")
 else (X86_64)
     message(The current platform is x86_64)
     SET(CMAKE_BUILD_TYPE Debug)
     message("CMAKE_BUILD_TYPE='${CMAKE_BUILD_TYPE}' is defined")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
-
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread")
 endif()
