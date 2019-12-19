@@ -24,7 +24,7 @@ add_executable(RobotBase
         RobotBase/roborts_sdk/dispatch/handle.cpp
         RobotBase/roborts_sdk/hardware/serial_device.cpp
         RobotBase/roborts_sdk/protocol/protocol.cpp
-        RobotBase/vision/big_buff.cpp RobotBase/vision/big_buff.h RobotBase/vision/vision_main.cpp RobotBase/vision/vision_main.h)
+        RobotBase/vision/bigbuff/big_buff.cpp RobotBase/vision/bigbuff/big_buff.h RobotBase/vision/vision_main.cpp RobotBase/vision/vision_main.h)
 target_link_libraries(RobotBase glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})

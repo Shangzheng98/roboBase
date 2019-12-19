@@ -3,7 +3,7 @@
 //
 
 #include "big_buff.h"
-#include "../gimbal.h"
+#include "../../gimbal.h"
 
 void big_buff() {
     //TODO: put big buff code here.
