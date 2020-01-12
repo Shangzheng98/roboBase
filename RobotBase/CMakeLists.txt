@@ -8,7 +8,14 @@ find_package(OpenCV 4.1.0 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(realsense2 REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
-add_executable(RobotBase armor_detection/armor_detection_node.cpp armor_detection/constraint_set.cpp chassis.cpp gimbal.cpp iniparser/dictionary.c iniparser/iniparser.c main.cpp referee_system.cpp roborts_sdk/dispatch/execution.cpp roborts_sdk/dispatch/handle.cpp roborts_sdk/hardware/serial_device.cpp roborts_sdk/protocol/protocol.cpp)
+add_executable(RobotBase armor_detection/armor_detection_node.cpp armor_detection/constraint_set.cpp
+        vision/gimbal/gimbal.cpp
+        iniparser/dictionary.c
+        iniparser/iniparser.c
+        main.cpp
+        roborts_sdk/dispatch/execution.cpp
+        roborts_sdk/dispatch/handle.cpp roborts_sdk/hardware/serial_device.cpp
+        roborts_sdk/protocol/protocol.cpp)
 target_link_libraries(RobotBase glog::glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})

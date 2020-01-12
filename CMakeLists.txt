@@ -8,14 +8,13 @@ project(RobotBase)
 # the libraries we used in the code
 find_package(glog REQUIRED)
 find_package(OpenCV 4.1.0 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(Boost REQUIRED)
 find_package(realsense2 REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 
 add_executable(RobotBase
-        RobotBase/chassis.cpp
-        RobotBase/gimbal.cpp
+        RobotBase/vision/gimbal/gimbal.cpp
         RobotBase/iniparser/dictionary.c
         RobotBase/iniparser/iniparser.c
         RobotBase/main.cpp
@@ -24,7 +23,15 @@ add_executable(RobotBase
         RobotBase/roborts_sdk/dispatch/handle.cpp
         RobotBase/roborts_sdk/hardware/serial_device.cpp
         RobotBase/roborts_sdk/protocol/protocol.cpp
-        RobotBase/vision/bigbuff/big_buff.cpp RobotBase/vision/bigbuff/big_buff.h RobotBase/vision/vision_main.cpp RobotBase/vision/vision_main.h RobotBase/vision/autoAim/autoAim.cpp RobotBase/vision/autoAim/autoAim.h)
+        RobotBase/vision/bigbuff/big_buff.cpp
+        RobotBase/vision/bigbuff/big_buff.h
+        RobotBase/vision/vision_main.cpp
+        RobotBase/vision/vision_main.h
+        RobotBase/vision/autoAim/autoAim.h
+        RobotBase/vision/autoAim/autoAim.cpp
+        RobotBase/vision/autoAim/armor.cpp
+        RobotBase/vision/autoAim/armor.h
+        RobotBase/vision/control.h)
 target_link_libraries(RobotBase glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})

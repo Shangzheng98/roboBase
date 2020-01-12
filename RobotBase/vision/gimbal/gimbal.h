@@ -19,14 +19,14 @@
 #define ROBORTS_BASE_GIMBAL_H
 
 #include <vector>
-#include "roborts_sdk/sdk.h"
-#include "msg.h"
+#include "../../roborts_sdk/sdk.h"
+#include "../../msg.h"
 #include <opencv2/opencv.hpp>
 #include<librealsense2/rsutil.h>
 #include <opencv2/core/cuda.hpp>
 
 //使用CUDA运算,在nano上调为1
-#define OPENCV_CUDA_ENABLE 1
+#define OPENCV_CUDA_ENABLE 0
 
 class Gimbal {
 public:
@@ -40,8 +40,6 @@ public:
 
     void VisionInfoCallback(const std::shared_ptr<roborts_sdk::cmd_vision_info> vision_info);
 
-    void StageInfoCallback(const std::shared_ptr<roborts_sdk::cmd_game_state> game_info);
-
     void RobotInfoCallback(const std::shared_ptr<roborts_sdk::cmd_game_robot_state> robot_info);
 
     void CtrlGimbalAngle(GimbalAngle msg);
@@ -52,14 +50,11 @@ public:
 
     bool CtrlShoot(uint8_t mode, uint8_t number);
 
-    int getCurrentMode();
+    uint8_t getId();
 
-    int getRemainTime();
+    uint8_t getLevel();
 
-    int getId();
-
-    //参数:x,y,深度图,是否重力补偿,是否预判位置,是否射击
-    void AimAtArmor(int x, int y, cv::Mat depth_frame, bool compensation, bool prediction, bool shoot);
+    void AimAtArmor(const cv::Point3f &target_3d, bool compensation);
 
     std::shared_ptr<roborts_sdk::Handle> handle_;
     std::shared_ptr<roborts_sdk::Client<roborts_sdk::cmd_version_id,
@@ -70,13 +65,24 @@ public:
     std::shared_ptr<roborts_sdk::Publisher<roborts_sdk::gimbal_mode_e>> gimbal_mode_pub_;
     std::shared_ptr<roborts_sdk::Publisher<roborts_sdk::cmd_fric_wheel_speed>> fric_wheel_pub_;
     std::shared_ptr<roborts_sdk::Publisher<roborts_sdk::cmd_shoot_info>> gimbal_shoot_pub_;
+public:
+    int OFFSET_INT_X = 5003;
+    int OFFSET_INT_Y = 5000;
+    int OFFSET_INT_Z = 5215;
+    float OFFSET_PITCH = 0;
+    float OFFSET_YAW = 0;
+    float OFFSET_X = 0;
+    float OFFSET_Y = 0;
+    float OFFSET_Z = 0;
 
 private:
-    int current_mode = -1;
-    int remain_time = -1;
-    int id = -1;
+    int current_mode = 0xFF;
+    uint8_t id = 0xFF;
+    uint8_t level = 0xFF;
+
+
 };
 
 extern Gimbal *gimbal;
 
-#endif
+#endif //ROBORTS_BASE_GIMBAL_H

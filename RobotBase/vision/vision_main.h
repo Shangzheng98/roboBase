@@ -5,16 +5,9 @@
 #ifndef ROBOTBASE_VISION_MAIN_H
 #define ROBOTBASE_VISION_MAIN_H
 
-// basic lib
-#include <opencv2/opencv.hpp>
+#include "autoAim/autoAim.h"
 #include <librealsense2/rs.hpp>
-#include <librealsense2/rsutil.h>
-#include <librealsense2/h/rs_types.h>
+#include <opencv2/opencv.hpp>
+void* vision_main_function();
 
-#include "bigbuff/big_buff.h"
-#include "../gimbal.h"
-
-
-void load_camera(rs2::config cfg, rs2::pipeline pipe, rs2::pipeline_profile profile);
-void *vision_main_function();
 #endif //ROBOTBASE_VISION_MAIN_H

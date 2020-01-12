@@ -47,8 +47,7 @@ namespace roborts_base {
 			robot_status.id = raw_robot_status->robot_id;
 		}
 		robot_id_ = raw_robot_status->robot_id;
-
-
+		//("regeree system id %d",robot_id_);
 		robot_status.level = raw_robot_status->robot_level;
 		robot_status.remain_hp = raw_robot_status->remain_HP;
 		robot_status.max_hp = raw_robot_status->max_HP;
