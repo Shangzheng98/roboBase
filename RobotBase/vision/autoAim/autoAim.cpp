@@ -47,11 +47,10 @@ cv::Rect ArmorDetector::GetRoi(const cv::Mat &img) {
 }
 
 bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frameset frames, cv::Rect roi) {
-    imshow("eqww",img);
     Mat roi_image = img(roi);
     Point2f offset_roi_point(roi.x, roi.y);
     vector<LED_bar> LED_bars;
-    Mat binary_brightness_img, binary_color_img, gray,debug_img;
+    Mat binary_brightness_img, binary_color_img, gray, debug_img;
     debug_img = img.clone();
     cvtColor(roi_image, gray, COLOR_BGR2GRAY);
 //    Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
@@ -59,7 +58,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frame
     vector<Mat> BGR_channels;
     split(roi_image, BGR_channels);
     Mat result_img;
-    if (color_ == 0) // blue
+    if (color_ == 0) // opposite red
     {
         subtract(BGR_channels[2], BGR_channels[1], result_img);
     } else {
@@ -68,12 +67,9 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frame
 
     threshold(gray, binary_brightness_img, gray_th_, 255, THRESH_BINARY);
     threshold(result_img, binary_color_img, color_th_, 255, THRESH_BINARY);
-    //Mat binary_light_img = binary_brightness_img & binary_color_img;
 #if SHOW_BINART
-    imshow("color_channel",result_img);
     imshow("binary_brightness_img", binary_brightness_img);
     imshow("binary_color_img", binary_color_img);
-    //imshow("binary_light_img",binary_light_img);
 #endif
     vector<vector<Point> > contours_light;
     vector<vector<Point> > contours_brightness;
@@ -88,34 +84,35 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frame
         for (unsigned int j = 0; j < contours_light.size(); j++) {
             if (pointPolygonTest(contours_light[j], contours_brightness[i][0], false) >= 0.0) {
                 double length = arcLength(contours_brightness[i], true); // 灯条周长
-                if (length>20 && length < 4000) {
+                if (length > 20 && length < 4000) {
                     RotatedRect RRect = fitEllipse(contours_brightness[i]);
                     //RotatedRect RRect = minAreaRect(contours_brightness[i]);
                     auto light_aspect_ratio =
                             std::max(RRect.size.width, RRect.size.height) /
                             std::min(RRect.size.width, RRect.size.height);
                     //auto light_aspect_ratio = RRect.size.height / RRect.size.width;
-                    if(RRect.angle>90.0f)
-                        RRect.angle =  RRect.angle - 180.0f;
+                    if (RRect.angle > 90.0f)
+                        RRect.angle = RRect.angle - 180.0f;
 
                     //(fabs(RRect.angle)<30||(fabs(RRect.angle)<90 && fabs(RRect.angle)>70))&&
-                    if (fabs(RRect.angle)<30) {
+                    if (fabs(RRect.angle) < 30) {
 #if SHOW_LIGHT_CONTOURS
                         char temp[20];
-                        sprintf(temp,"%0.2f", light_aspect_ratio);
+                        sprintf(temp, "%0.2f", light_aspect_ratio);
                         putText(debug_img, temp, RRect.center + Point2f(0, -40) + offset_roi_point,
-                            FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1);
+                                FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1);
                         Point2f rect_point[4];
                         RRect.points(rect_point);
                         for (int i = 0; i < 4; i++) {
-                            line(debug_img, rect_point[i] + offset_roi_point, rect_point[(i + 1) % 4] + offset_roi_point,
+                            line(debug_img, rect_point[i] + offset_roi_point,
+                                 rect_point[(i + 1) % 4] + offset_roi_point,
                                  Scalar(255, 0, 255), 1);
                         }
 #endif
 
 #if SHOW_LIGHT_CONTOURS
                         char temp1[20];
-                        sprintf(temp1,"%0.2f",RRect.angle);
+                        sprintf(temp1, "%0.2f", RRect.angle);
                         putText(debug_img, temp1, RRect.center + Point2f(0, -10) + offset_roi_point,
                                 FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1);
 #endif
@@ -180,7 +177,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frame
         found_flag = true;
     }
 #if SHOW_ROI
-    rectangle(debug_img,roi,Scalar(255,0,255),1);
+    rectangle(debug_img, roi, Scalar(255, 0, 255), 1);
 #endif
     if (found_flag) {
 #if SHOW_DRAW_SPOT
@@ -214,20 +211,18 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frame
         //计算ROI的相关参数
         last_target_ = boundingRect(points_roi_tmp);
 #if SHOW_LAST_TARGET
-        rectangle(debug_img, last_target_,Scalar(255,255,255), 1);
+        rectangle(debug_img, last_target_, Scalar(255, 255, 255), 1);
 
 #endif
         lost_count = 0;
         target_3d.x = last_target_.x + (last_target_.width) / 2;
         target_3d.y = last_target_.y + (last_target_.height) / 2;
-        rs2::depth_frame depthFrame = frames.get_depth_frame();
-        target_3d.z = depthFrame.get_distance(target_3d.x, target_3d.y);
     } else {
         lost_count++;
     }
     detect_count++;
 
-    imshow("debug_img",debug_img);
+    imshow("debug_img", debug_img);
     return found_flag;
 }
 
@@ -249,16 +244,21 @@ int ArmorDetector::armorTask(cv::Mat &color, rs2::frameset frames, OtherParam ot
     float target_2d_depth_pixel[2] = {};
     float world_target_3d_temp[3] = {};
     Point3f world_target_3d;
-//    rs2_project_color_pixel_to_depth_pixel(target_2d_depth_pixel,
-//                                           reinterpret_cast<const uint16_t *>(frames.get_depth_frame().get_data()),
-//                                           this->depth_scale, 0, 10, &depth_intrinsics, &color_intrinsics,
-//                                           &color_extrin_to_depth, &depth_extrin_to_color, target_2d_color_pixel);
-    rs2_deproject_pixel_to_point(world_target_3d_temp, &depth_intrinsics, target_2d_color_pixel, target_3d.z);
-    world_target_3d = {(world_target_3d_temp[0]) / 10, world_target_3d_temp[1] / 10, (world_target_3d_temp[2]) / 10};
-    //printf("world_target_3d X: %f, Y:%f, Z: %f\n ",world_target_3d.x,world_target_3d.y,world_target_3d.z);
-    gimbal->AimAtArmor(world_target_3d, true);
+    rs2_project_color_pixel_to_depth_pixel(target_2d_depth_pixel,
+                                           reinterpret_cast<const uint16_t *>(frames.get_depth_frame().get_data()),
+                                           0.001, 0, 10, &depth_intrinsics, &color_intrinsics,
+                                           &color_extrin_to_depth, &depth_extrin_to_color, target_2d_color_pixel);
 
-    //imshow("src", color);
+    auto dis = frames.get_depth_frame().get_distance(target_2d_depth_pixel[0],target_2d_depth_pixel[1]);
+    rs2_deproject_pixel_to_point(world_target_3d_temp, &depth_intrinsics, target_2d_color_pixel, dis);
+
+
+    world_target_3d = {(world_target_3d_temp[0]) / 10, world_target_3d_temp[1] / 10, (world_target_3d_temp[2]) / 10};
+//    printf("target_2d_color_pixel X: %f, Y:%f\n ", target_2d_color_pixel[0], target_2d_color_pixel[1]);
+//    printf("target_2d_depth_pixel X: %f, Y:%f\n ", target_2d_depth_pixel[0], target_2d_depth_pixel[1]);
+//    printf("未转化坐标深度: %0.2f\n",frames.get_depth_frame().get_distance(target_2d_color_pixel[0],target_2d_color_pixel[1]));
+//    printf("转化后坐标深度： %0.2f\n",dis);
+    gimbal->AimAtArmor(world_target_3d, true);
 }
 
 

@@ -31,7 +31,7 @@ add_executable(RobotBase
         RobotBase/vision/autoAim/autoAim.cpp
         RobotBase/vision/autoAim/armor.cpp
         RobotBase/vision/autoAim/armor.h
-        RobotBase/vision/control.h)
+        RobotBase/vision/control.h RobotBase/record_video/recording_main.cpp RobotBase/record_video/recording_main.h)
 target_link_libraries(RobotBase glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})

@@ -8,7 +8,8 @@ find_package(OpenCV 4.1.0 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(realsense2 REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
-add_executable(RobotBase armor_detection/armor_detection_node.cpp armor_detection/constraint_set.cpp
+add_executable(RobotBase
+        armor_detection/armor_detection_node.cpp armor_detection/constraint_set.cpp
         vision/gimbal/gimbal.cpp
         iniparser/dictionary.c
         iniparser/iniparser.c

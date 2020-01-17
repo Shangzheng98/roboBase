@@ -15,23 +15,20 @@ std::shared_ptr<roborts_sdk::Handle> handle = nullptr;
 
 using namespace cv;
 int main(int argc, char *argv[]) {
-    // Start SDK
-    //start_sdk();
 
-    // Gimbal initializin
+
 #if CONNECT_TO_SERIAL
     auto handle = std::make_shared<roborts_sdk::Handle>(SERIAL_PORT);
     if (!handle->Init()) {
         return 1;
     }
     gimbal = new Gimbal(handle);
-    //chassis = new Chassis(handle);
     namedWindow("Offset",WINDOW_AUTOSIZE);
     cv::createTrackbar("OFFSET_INT_X", "Offset", &gimbal->OFFSET_INT_X, 10000);
     cv::createTrackbar("OFFSET_INT_Y", "Offset", &gimbal->OFFSET_INT_Y, 10000);
     cv::createTrackbar("OFFSET_INT_Z", "Offset", &gimbal->OFFSET_INT_Z, 10000);
 #else
-    gimbal = new Gimbal(NULL);
+    gimbal = new Gimbal(nullptr);
 #endif
 
     // New thread for vision function

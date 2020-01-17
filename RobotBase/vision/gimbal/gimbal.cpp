@@ -26,7 +26,7 @@
 
 
 //弹速,比真实弹速小2-3可能效果更好
-int INIT_V = 20.0f;
+float INIT_V = 20.0f;
 
 pthread_spinlock_t gimbal_to_chassis_lock = {};
 
@@ -109,14 +109,12 @@ void Gimbal::GimbalInfoCallback(const std::shared_ptr<roborts_sdk::cmd_gimbal_in
 
 void Gimbal::VisionInfoCallback(const std::shared_ptr<roborts_sdk::cmd_vision_info> vision_info) {
     current_mode = vision_info->vision_mode;
-    //printf("task:%d\n", current_task);
 }
 
 
 void Gimbal::RobotInfoCallback(const std::shared_ptr<roborts_sdk::cmd_game_robot_state> robot_info) {
     id = robot_info->robot_id;
     level = robot_info->robot_level;
-    //printf("id : %d\n",id);
 }
 
 void Gimbal::CtrlGimbalAngle(GimbalAngle msg) {
@@ -230,11 +228,9 @@ float GetPitch(float x, float y, float v) {
 void Gimbal::AimAtArmor(const cv::Point3f &target_3d, bool compensation) {
 
     //用作校准相机,5000为归零
-//    if (DEBUG_ENABLE) {
-    OFFSET_X = ((double) OFFSET_INT_X - 5000);
-    OFFSET_Y = ((double) OFFSET_INT_Y - 5000);
-    OFFSET_Z = ((double) OFFSET_INT_Z - 5000);
-//    }
+    OFFSET_X = (double)(OFFSET_INT_X - 5000);
+    OFFSET_Y = (double)(OFFSET_INT_Y - 5000);
+    OFFSET_Z = (double)(OFFSET_INT_Z - 5000);
 
     GimbalAngle gimbal_angle = {};
 
@@ -270,15 +266,6 @@ void Gimbal::AimAtArmor(const cv::Point3f &target_3d, bool compensation) {
     gimbal_angle.pitch_angle = pitch * 0.4f;
     //printf("pitch %f, yaw %f\n", gimbal_angle.pitch_angle,gimbal_angle.yaw_angle);
     CtrlGimbalAngle(gimbal_angle);
-}
-
-
-uint8_t Gimbal::getId() {
-    return id;
-}
-
-uint8_t Gimbal::getLevel() {
-    return level;
 }
 
 void print_gimbal_fps() {

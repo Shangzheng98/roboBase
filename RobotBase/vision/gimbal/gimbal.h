@@ -50,9 +50,6 @@ public:
 
     bool CtrlShoot(uint8_t mode, uint8_t number);
 
-    uint8_t getId();
-
-    uint8_t getLevel();
 
     void AimAtArmor(const cv::Point3f &target_3d, bool compensation);
 
@@ -75,7 +72,7 @@ public:
     float OFFSET_Y = 0;
     float OFFSET_Z = 0;
 
-private:
+public:
     int current_mode = 0xFF;
     uint8_t id = 0xFF;
     uint8_t level = 0xFF;
