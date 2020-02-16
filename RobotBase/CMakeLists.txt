@@ -8,6 +8,7 @@ find_package(OpenCV 4.1.0 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(realsense2 REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories(DxImageProc.h GxIAPI.h)
 add_executable(RobotBase
         armor_detection/armor_detection_node.cpp armor_detection/constraint_set.cpp
         vision/gimbal/gimbal.cpp
@@ -17,9 +18,12 @@ add_executable(RobotBase
         roborts_sdk/dispatch/execution.cpp
         roborts_sdk/dispatch/handle.cpp roborts_sdk/hardware/serial_device.cpp
         roborts_sdk/protocol/protocol.cpp)
+link_directories(../)
+target_link_libraries (RobotBase gxiapi)
 target_link_libraries(RobotBase glog::glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})
 target_link_libraries(RobotBase realsense2::realsense2)
+target_link_libraries(Robotbase libgxiapi.so)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=gnu++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=gnu++11")

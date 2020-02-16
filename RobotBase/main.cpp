@@ -9,7 +9,7 @@
 // global variable
 //char SERIAL_PORT[20] = "/dev/ttyACM0";
 char SERIAL_PORT[20] = "/dev/serial_sdk";
-#define CONNECT_TO_SERIAL 1
+#define CONNECT_TO_SERIAL 0
 Gimbal *gimbal = nullptr;
 std::shared_ptr<roborts_sdk::Handle> handle = nullptr;
 

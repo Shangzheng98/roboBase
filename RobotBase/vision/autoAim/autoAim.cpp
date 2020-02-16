@@ -25,12 +25,12 @@ cv::Rect ArmorDetector::GetRoi(const cv::Mat &img) {
         return rect_roi;
     } else {
         float scale = 2;
-        if (lost_count < 40)
-            scale = 2;
-        else if (lost_count <= 80)
-            scale = 2.4;
-        else if (lost_count <= 160)
+        if (lost_count <= 35)
+            scale = 2.3;
+        else if (lost_count <= 60)
             scale = 3;
+        else if (lost_count <= 100)
+            scale = 3.5;
 
         int w = int(rect_tmp.width * scale);
         int h = int(rect_tmp.height * scale);
@@ -244,21 +244,21 @@ int ArmorDetector::armorTask(cv::Mat &color, rs2::frameset frames, OtherParam ot
     float target_2d_depth_pixel[2] = {};
     float world_target_3d_temp[3] = {};
     Point3f world_target_3d;
-    rs2_project_color_pixel_to_depth_pixel(target_2d_depth_pixel,
-                                           reinterpret_cast<const uint16_t *>(frames.get_depth_frame().get_data()),
-                                           0.001, 0, 10, &depth_intrinsics, &color_intrinsics,
-                                           &color_extrin_to_depth, &depth_extrin_to_color, target_2d_color_pixel);
+//    rs2_project_color_pixel_to_depth_pixel(target_2d_depth_pixel,
+//                                           reinterpret_cast<const uint16_t *>(frames.get_depth_frame().get_data()),
+//                                           0.001, 0, 10, &depth_intrinsics, &color_intrinsics,
+//                                           &color_extrin_to_depth, &depth_extrin_to_color, target_2d_color_pixel);
 
-    auto dis = frames.get_depth_frame().get_distance(target_2d_depth_pixel[0],target_2d_depth_pixel[1]);
-    rs2_deproject_pixel_to_point(world_target_3d_temp, &depth_intrinsics, target_2d_color_pixel, dis);
+    //auto dis = frames.get_depth_frame().get_distance(target_2d_depth_pixel[0],target_2d_depth_pixel[1]);
+    //rs2_deproject_pixel_to_point(world_target_3d_temp, &depth_intrinsics, target_2d_color_pixel, dis);
 
 
-    world_target_3d = {(world_target_3d_temp[0]) / 10, world_target_3d_temp[1] / 10, (world_target_3d_temp[2]) / 10};
+    //world_target_3d = {(world_target_3d_temp[0]) / 10, world_target_3d_temp[1] / 10, (world_target_3d_temp[2]) / 10};
 //    printf("target_2d_color_pixel X: %f, Y:%f\n ", target_2d_color_pixel[0], target_2d_color_pixel[1]);
 //    printf("target_2d_depth_pixel X: %f, Y:%f\n ", target_2d_depth_pixel[0], target_2d_depth_pixel[1]);
 //    printf("未转化坐标深度: %0.2f\n",frames.get_depth_frame().get_distance(target_2d_color_pixel[0],target_2d_color_pixel[1]));
 //    printf("转化后坐标深度： %0.2f\n",dis);
-    gimbal->AimAtArmor(world_target_3d, true);
+    //gimbal->AimAtArmor(world_target_3d, true);
 }
 
 

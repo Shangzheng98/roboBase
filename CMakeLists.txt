@@ -11,7 +11,7 @@ find_package(OpenCV 4.1.0 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(realsense2 REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
-
+include_directories(../)
 
 add_executable(RobotBase
         RobotBase/vision/gimbal/gimbal.cpp
@@ -31,7 +31,13 @@ add_executable(RobotBase
         RobotBase/vision/autoAim/autoAim.cpp
         RobotBase/vision/autoAim/armor.cpp
         RobotBase/vision/autoAim/armor.h
-        RobotBase/vision/control.h RobotBase/record_video/recording_main.cpp RobotBase/record_video/recording_main.h)
+        RobotBase/vision/control.h
+        RobotBase/record_video/recording_main.cpp
+        RobotBase/record_video/recording_main.h
+        RobotBase/vision/cam/Daheng.cpp
+        RobotBase/vision/cam/Daheng.cpp)
+link_directories(../)
+target_link_libraries (RobotBase gxiapi)
 target_link_libraries(RobotBase glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})

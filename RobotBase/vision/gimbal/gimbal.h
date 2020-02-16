@@ -30,7 +30,7 @@
 
 class Gimbal {
 public:
-    Gimbal(std::shared_ptr<roborts_sdk::Handle> handle);
+    explicit Gimbal(std::shared_ptr<roborts_sdk::Handle> handle);
 
     ~Gimbal();
 
