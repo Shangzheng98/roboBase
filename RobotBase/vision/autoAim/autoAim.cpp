@@ -6,7 +6,6 @@
 
 using namespace cv;
 using namespace std;
-using namespace rs2;
 
 double calc_distance(Point2f p1, Point2f p2) {
     return pow(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2), 0.5);
@@ -46,7 +45,7 @@ cv::Rect ArmorDetector::GetRoi(const cv::Mat &img) {
     return rect_roi;
 }
 
-bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frameset frames, cv::Rect roi) {
+bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect roi) {
     Mat roi_image = img(roi);
     Point2f offset_roi_point(roi.x, roi.y);
     vector<LED_bar> LED_bars;
@@ -226,7 +225,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frame
     return found_flag;
 }
 
-int ArmorDetector::armorTask(cv::Mat &color, rs2::frameset frames, OtherParam other_param) {
+int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param) {
     color_ = other_param.color;
     mode_ = other_param.mode;
     level_ = other_param.level;
@@ -239,7 +238,7 @@ int ArmorDetector::armorTask(cv::Mat &color, rs2::frameset frames, OtherParam ot
 #endif
     Point3f target_3d = {0, 0, 0};
 
-    DetectArmor(color, target_3d, frames, roi);
+    DetectArmor(color, target_3d, roi);
     float target_2d_color_pixel[2] = {target_3d.x, target_3d.y};
     float target_2d_depth_pixel[2] = {};
     float world_target_3d_temp[3] = {};

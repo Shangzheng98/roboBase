@@ -7,7 +7,6 @@
 
 #include <opencv2/opencv.hpp>
 #include <stdlib.h>
-#include <librealsense2/rs.hpp>
 #include "../control.h"
 #include "armor.h"
 #include "../gimbal/gimbal.h"
@@ -29,9 +28,9 @@ public:
 
     ~ArmorDetector() = default;
 
-    int armorTask(cv::Mat &img, rs2::frameset frames, OtherParam other_param);
+    int armorTask(cv::Mat &img, OtherParam other_param);
 
-    bool DetectArmor(cv::Mat &img, cv::Point3f &target_3d, rs2::frameset frames, cv::Rect roi);
+    bool DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect roi);
 
 public:
     int color_th_ = 13;
@@ -68,13 +67,6 @@ private:
     std::list<bool> history_;
     int filter_size_ = 5;
     bool is_small_{};
-
-public:
-    rs2_intrinsics depth_intrinsics;
-    rs2_intrinsics color_intrinsics;
-    rs2_extrinsics depth_extrin_to_color;
-    rs2_extrinsics color_extrin_to_depth;
-    float depth_scale;
 
 };
 

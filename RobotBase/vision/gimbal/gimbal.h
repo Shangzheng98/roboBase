@@ -22,7 +22,6 @@
 #include "../../roborts_sdk/sdk.h"
 #include "../../msg.h"
 #include <opencv2/opencv.hpp>
-#include<librealsense2/rsutil.h>
 #include <opencv2/core/cuda.hpp>
 
 //使用CUDA运算,在nano上调为1
