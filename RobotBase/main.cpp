@@ -16,6 +16,13 @@ std::shared_ptr<roborts_sdk::Handle> handle = nullptr;
 using namespace cv;
 int main(int argc, char *argv[]) {
 
+    printf("+----------------------------+\n");
+    printf("|                            |\n");
+    printf("|                            |\n");
+    printf("|        VT Robogrinder      |\n");
+    printf("|                            |\n");
+    printf("|                            |\n");
+    printf("+----------------------------+\n");
 
 #if CONNECT_TO_SERIAL
     auto handle = std::make_shared<roborts_sdk::Handle>(SERIAL_PORT);

@@ -35,7 +35,7 @@ int Daheng::init() {
         printf("cannot find the device!!!!!!!!!!");
     }
     status = GXOpenDevice(&stOpenParam, &hDevice);
-    std::cout << status << "success" << std::endl;
+    //std::cout << status << "success" << std::endl;
     if (status == GX_STATUS_SUCCESS) {
         int64_t nPayLoadSize = 0;
         //获取图像buffer大小，下面动态申请内存

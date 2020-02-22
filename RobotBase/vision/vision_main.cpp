@@ -27,6 +27,12 @@ void *vision_main_function() {
             otherParam.color = 1;
         }
         daheng.getImage(color);
+        if (color.empty())
+        {
+            printf("\nthe image is empty, please check camera!\n");
+
+            break;
+        }
 //        auto time0 = static_cast<double>(getTickCount());
         armorDetector.armorTask(color,otherParam);
         //time0 = ((double) getTickCount() - time0) / getTickFrequency();
