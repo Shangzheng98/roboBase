@@ -23,8 +23,7 @@ add_executable(RobotBase
         RobotBase/roborts_sdk/dispatch/handle.cpp
         RobotBase/roborts_sdk/hardware/serial_device.cpp
         RobotBase/roborts_sdk/protocol/protocol.cpp
-        RobotBase/vision/bigbuff/big_buff.cpp
-        RobotBase/vision/bigbuff/big_buff.h
+        RobotBase/vision/bigbuff/BigbuffDetection.cpp
         RobotBase/vision/vision_main.cpp
         RobotBase/vision/vision_main.h
         RobotBase/vision/autoAim/autoAim.h
