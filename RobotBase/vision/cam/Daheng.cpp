@@ -48,8 +48,8 @@ int Daheng::init() {
             stFrameData.pImgBuf = malloc((size_t) nPayLoadSize);
 
             // 设置曝光值
-            status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME, 1000);
-
+            status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME, 700);
+            status=GXSetFloat(hDevice,GX_FLOAT_GAIN, 4);
             //设置采集模式连续采集
             //            status = GXSetEnum(hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
             //            status = GXSetInt(hDevice, GX_INT_ACQUISITION_SPEED_LEVEL, 1);

@@ -10,7 +10,8 @@
 struct frame_info{
 
     clock_t f_time;
-    cv::Point2f position;
+    cv::Point2f center;
+    cv::Point2f angular_vector;
 
 };
 
@@ -24,7 +25,9 @@ private:
     int IMAGE_COLS;
     int IMAGE_ROWS;
     cv::Mat image;
+    int sample_num = 0;
     bool test;
+    uint8_t color_ = 1;
     const int THR_R_min = 32, THR_G_min = 43, THR_B_min = 22, THR_R_max = 255, THR_G_max = 255, THR_B_max = 255;
     const int THR_S_min = 0,THR_S_max = 100,THR_V_min = 0, THR_V_max = 100;
 
@@ -45,6 +48,7 @@ private:
 
 
 public:
+
     // constructor: information about camera
     BigbufDetection(int cols, int rows, bool test);
 
@@ -53,6 +57,10 @@ public:
     void getTest_result();
 
     void make_prediction();
+
+public:
+    int color_th_ = 131;
+    int gray_th_ = 24;
 };
 
 

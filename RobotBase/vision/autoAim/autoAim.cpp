@@ -56,16 +56,16 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect r
 //    dilate(roi_image, roi_image, element);
     vector<Mat> BGR_channels;
     split(roi_image, BGR_channels);
-    Mat result_img;
+    Mat color_result_img;
     if (color_ == 0) // opposite red
     {
-        subtract(BGR_channels[2], BGR_channels[1], result_img);
+        subtract(BGR_channels[2], BGR_channels[1], color_result_img);
     } else {
-        subtract(BGR_channels[0], BGR_channels[2], result_img);
+        subtract(BGR_channels[0], BGR_channels[2], color_result_img);
     }
 
     threshold(gray, binary_brightness_img, gray_th_, 255, THRESH_BINARY);
-    threshold(result_img, binary_color_img, color_th_, 255, THRESH_BINARY);
+    threshold(color_result_img, binary_color_img, color_th_, 255, THRESH_BINARY);
 #if SHOW_BINART
     imshow("binary_brightness_img", binary_brightness_img);
     imshow("binary_color_img", binary_color_img);
