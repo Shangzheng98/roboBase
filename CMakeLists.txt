@@ -18,7 +18,7 @@ add_executable(RobotBase
         RobotBase/iniparser/dictionary.c
         RobotBase/iniparser/iniparser.c
         RobotBase/main.cpp
-        RobotBase/referee_system.cpp
+        #RobotBase/referee_system.cpp
         RobotBase/roborts_sdk/dispatch/execution.cpp
         RobotBase/roborts_sdk/dispatch/handle.cpp
         RobotBase/roborts_sdk/hardware/serial_device.cpp

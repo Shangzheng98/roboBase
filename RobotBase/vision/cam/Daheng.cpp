@@ -6,7 +6,7 @@
 
 Daheng::Daheng() {
     this->status = GX_STATUS_SUCCESS;
-    this->src.create(Size(480, 640), CV_8UC3);
+    this->src.create(Size(640, 480), CV_8UC3);
     stOpenParam.accessMode = GX_ACCESS_EXCLUSIVE;
     stOpenParam.openMode = GX_OPEN_INDEX;
     stOpenParam.pszContent = "1";
@@ -25,14 +25,14 @@ Daheng::~Daheng() {
 int Daheng::init() {
     this->status = GXInitLib();
     if (this->status != GX_STATUS_SUCCESS) {
-        printf("failed to initialize!!!!!!!!!!!!!!!");
+        printf("failed to initialize!!!!!!!!!!!!!!!\n");
         return 0;
     }
 
     this->status = GXUpdateDeviceList(&nDeviceNum, 1000);
 
-    if (status != GX_STATUS_SUCCESS || nDeviceNum < 0) {
-        printf("cannot find the device!!!!!!!!!!");
+    if (status != GX_STATUS_SUCCESS || nDeviceNum == NULL) {
+        printf("cannot find the device!!!!!!!!!!\n");
     }
     status = GXOpenDevice(&stOpenParam, &hDevice);
     //std::cout << status << "success" << std::endl;
@@ -48,13 +48,13 @@ int Daheng::init() {
             stFrameData.pImgBuf = malloc((size_t) nPayLoadSize);
 
             // 设置曝光值
-            status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME, 700);
-            status=GXSetFloat(hDevice,GX_FLOAT_GAIN, 4);
+            status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME, 900);
+
             //设置采集模式连续采集
             //            status = GXSetEnum(hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
             //            status = GXSetInt(hDevice, GX_INT_ACQUISITION_SPEED_LEVEL, 1);
-            //            status = GXSetEnum(hDevice, GX_ENUM_BALANCE_WHITE_AUTO, GX_BALANCE_WHITE_AUTO_CONTINUOUS);
-
+            status = GXSetEnum(hDevice, GX_ENUM_BALANCE_WHITE_AUTO, GX_BALANCE_WHITE_AUTO_CONTINUOUS);
+            status = GXSetBool(hDevice,GX_ENUM_GAIN_AUTO, false);
 
             //发送开始采集命令
             status = GXSendCommand(hDevice, GX_COMMAND_ACQUISITION_START);
@@ -75,11 +75,6 @@ void Daheng::getImage(Mat &img) {
         char *m_rgb_image = nullptr; //增加的内容
         m_rgb_image = new char[stFrameData.nWidth * stFrameData.nHeight * 3];
         src.create(stFrameData.nHeight, stFrameData.nWidth, CV_8UC3);
-        /**
-         * DxRaw8toRGB24(stFrameData.pImgBuf,
-                m_rgb_image,stFrameData.nWidth, stFrameData.nHeight,RAW2RGB_NEIGHBOUR3,
-                DX_PIXEL_COLOR_FILTER(BAYERBG),false);
-         */
         DxRaw8toRGB24(stFrameData.pImgBuf,
                       m_rgb_image, stFrameData.nWidth, stFrameData.nHeight, RAW2RGB_NEIGHBOUR3,
                       DX_PIXEL_COLOR_FILTER(BAYERBG), false);
@@ -87,6 +82,7 @@ void Daheng::getImage(Mat &img) {
 
         src.copyTo(img);
 //        img = src;
+
         nFrameNum++;
 
         //对图像进行处理...
