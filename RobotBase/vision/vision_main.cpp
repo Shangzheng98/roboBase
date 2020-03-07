@@ -21,6 +21,7 @@ void *vision_main_function() {
     createTrackbar("color_th", "control", &armorDetector.color_th_, 255);
     createTrackbar("gray_th", "control", &armorDetector.gray_th_, 255);
     Mat color;
+    BigbufDetection bigbuff =  BigbufDetection(640,480,1);
     while (1) {
         otherParam.level = gimbal->level;
         otherParam.id = gimbal->id;
@@ -33,6 +34,7 @@ void *vision_main_function() {
         }
         daheng.getImage(color);
         resize(color,color,Size(680,460));
+        imshow("a",color);
         if (color.empty())
         {
             printf("\nthe image is empty, please check camera!\n");
@@ -40,9 +42,11 @@ void *vision_main_function() {
             break;
         }
 //        auto time0 = static_cast<double>(getTickCount());
-        armorDetector.armorTask(color,otherParam);
+        //armorDetector.armorTask(color,otherParam);
         //time0 = ((double) getTickCount() - time0) / getTickFrequency();
         //std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
+        bigbuff.feed_im(color);
+        bigbuff.getTest_result();
         //imshow("lyx",color);
         if (waitKey(1) == 'q') {
 

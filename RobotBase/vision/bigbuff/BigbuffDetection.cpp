@@ -53,8 +53,6 @@ void BigbufDetection::filte_image(cv::Mat &im) {
     //im = im & ref_im;
     //morphologyEx(im, im, 3, getStructuringElement(0, cv::Size(3, 3), cv::Point(2, 2)));
     cv::dilate(im,im,getStructuringElement(0, cv::Size(5, 5)));
-    cv::dilate(im,im,cv::Mat());
-    cv::dilate(im,im,cv::Mat());
     cv::erode(im,im,getStructuringElement(0, cv::Size(5, 5)));
 
 }
