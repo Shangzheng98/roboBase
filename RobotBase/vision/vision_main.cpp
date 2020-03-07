@@ -11,7 +11,11 @@ void *vision_main_function() {
     Daheng daheng;
     ArmorDetector armorDetector;
     OtherParam otherParam;
-    daheng.init();
+    if (daheng.init() == 0)
+    {
+        printf("fail to init lib\n");
+        return nullptr;
+    }
     namedWindow("control", WINDOW_AUTOSIZE);
     createTrackbar("color_th", "control", &armorDetector.color_th_, 255);
     createTrackbar("gray_th", "control", &armorDetector.gray_th_, 255);
@@ -27,6 +31,7 @@ void *vision_main_function() {
             otherParam.color = 1;
         }
         daheng.getImage(color);
+        resize(color,color,Size(680,460));
         if (color.empty())
         {
             printf("\nthe image is empty, please check camera!\n");
@@ -34,10 +39,10 @@ void *vision_main_function() {
             break;
         }
 //        auto time0 = static_cast<double>(getTickCount());
-        armorDetector.armorTask(color,otherParam);
+        //armorDetector.armorTask(color,otherParam);
         //time0 = ((double) getTickCount() - time0) / getTickFrequency();
         //std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
-        //imshow("lyx",color);
+        imshow("test",color);
         if (waitKey(1) == 'q') {
 
             break;

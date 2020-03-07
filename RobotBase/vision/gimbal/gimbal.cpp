@@ -25,7 +25,6 @@
 #include <eigen3/Eigen/Core>
 
 
-//弹速,比真实弹速小2-3可能效果更好
 float INIT_V = 20.0f;
 
 pthread_spinlock_t gimbal_to_chassis_lock = {};
@@ -100,8 +99,7 @@ void Gimbal::SDK_Init() {
 }
 
 void Gimbal::GimbalInfoCallback(const std::shared_ptr<roborts_sdk::cmd_gimbal_info> gimbal_info) {
-    //记录云台相对于地盘的值
-    //同样没有必要加锁
+
     pthread_spin_lock(&gimbal_to_chassis_lock);
     pthread_spin_unlock(&gimbal_to_chassis_lock);
 

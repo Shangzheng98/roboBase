@@ -1,5 +1,4 @@
-﻿#include <librealsense2/rs.hpp>
-#include <signal.h>
+﻿
 #include "vision/vision_main.h"
 #include "roborts_sdk/sdk.h"
 #include "vision/gimbal/gimbal.h"

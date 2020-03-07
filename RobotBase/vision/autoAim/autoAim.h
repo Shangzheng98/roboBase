@@ -12,7 +12,7 @@
 #include "../gimbal/gimbal.h"
 
 struct _OtherParam {
-    uint8_t color = 0; //我方车辆颜色，0是蓝色，1是红色。用于图像预处理
+    uint8_t color = 0; //the self car color，0 blue，1 red
     uint8_t mode = 0;
     uint8_t level = 0;
     uint8_t id = 0;
