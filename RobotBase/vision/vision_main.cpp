@@ -2,7 +2,6 @@
 // Created by eric on 11/30/19.
 //
 
-#include <roboBase/RobotBase/vision/bigbuff/BigbuffDetection.h>
 #include "vision_main.h"
 
 using namespace cv;
@@ -18,10 +17,11 @@ void *vision_main_function() {
         return nullptr;
     }
     namedWindow("control", WINDOW_AUTOSIZE);
-    createTrackbar("color_th", "control", &armorDetector.color_th_, 255);
-    createTrackbar("gray_th", "control", &armorDetector.gray_th_, 255);
-    Mat color;
     BigbufDetection bigbuff =  BigbufDetection(640,480,1);
+    createTrackbar("color_th", "control", &bigbuff.color_th_, 255);
+    createTrackbar("gray_th", "control", &bigbuff.gray_th_, 255);
+    Mat color;
+
     while (1) {
         otherParam.level = gimbal->level;
         otherParam.id = gimbal->id;
@@ -33,8 +33,8 @@ void *vision_main_function() {
             otherParam.color = 1;
         }
         daheng.getImage(color);
-        resize(color,color,Size(680,460));
-        imshow("a",color);
+        //resize(color,color,Size(680,460));
+        //imshow("a",color);
         if (color.empty())
         {
             printf("\nthe image is empty, please check camera!\n");
@@ -47,7 +47,7 @@ void *vision_main_function() {
         //std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
         bigbuff.feed_im(color);
         bigbuff.getTest_result();
-        //imshow("lyx",color);
+        //imshow("test",color);
         if (waitKey(1) == 'q') {
 
             break;

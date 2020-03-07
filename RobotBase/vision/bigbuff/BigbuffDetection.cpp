@@ -52,9 +52,10 @@ void BigbufDetection::filte_image(cv::Mat &im) {
     im = binary_color_img & binary_brightness_img;
     //im = im & ref_im;
     //morphologyEx(im, im, 3, getStructuringElement(0, cv::Size(3, 3), cv::Point(2, 2)));
-    cv::dilate(im,im,getStructuringElement(0, cv::Size(5, 5)));
-    cv::erode(im,im,getStructuringElement(0, cv::Size(5, 5)));
 
+    cv::dilate(binary_color_img,binary_color_img,getStructuringElement(0, cv::Size(5, 5)));
+
+    cv::erode(binary_color_img,binary_color_img,getStructuringElement(0, cv::Size(5, 5)));
 }
 
 
