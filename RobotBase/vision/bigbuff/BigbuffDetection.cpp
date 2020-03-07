@@ -36,6 +36,8 @@ void BigbufDetection::filte_image(cv::Mat &im) {
     cv::Mat result_img;
     std::vector<cv::Mat> BGR_channels;
     split(im, BGR_channels);
+    ///test:
+    cv::imshow("Color",im);
     if (this->color_ == 0) // opposite red
     {
         subtract(BGR_channels[2], BGR_channels[1],result_img);
