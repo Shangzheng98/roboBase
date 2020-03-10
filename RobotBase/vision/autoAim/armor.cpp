@@ -45,7 +45,7 @@ bool armor::is_suitable_size() {
                                (led_bars[0].rect.center.y - led_bars[1].rect.center.y) *
                                (led_bars[0].rect.center.y - led_bars[1].rect.center.y));
     if (led_bars[0].rect.size.height * 0.7f < led_bars[1].rect.size.height
-        && led_bars[0].rect.size.height * 1.3f > led_bars[1].rect.size.height&& light_dis<150) {
+        && led_bars[0].rect.size.height * 1.3f > led_bars[1].rect.size.height && light_dis<200) {
 
         float armor_width = fabs(led_bars[0].rect.center.x - led_bars[1].rect.center.x);
 
@@ -55,7 +55,7 @@ bool armor::is_suitable_size() {
             float h_max = (led_bars[0].rect.size.height + led_bars[1].rect.size.height) / 2.0f;
 
             // 两个灯条高度差不大
-            if (fabs(led_bars[0].rect.center.y - led_bars[1].rect.center.y) < 0.6f * h_max) {
+            if (fabs(led_bars[0].rect.center.y - led_bars[1].rect.center.y) < 1.0f * h_max) {
                 // 长宽比判断
                 if (h_max * 4.0f > rect.width && h_max < 1.2f * rect.width) {
                     return true;

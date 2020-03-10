@@ -54,7 +54,7 @@ int Daheng::init() {
             //            status = GXSetEnum(hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
             //            status = GXSetInt(hDevice, GX_INT_ACQUISITION_SPEED_LEVEL, 1);
             //status = GXSetEnum(hDevice, GX_ENUM_BALANCE_WHITE_AUTO, GX_BALANCE_WHITE_AUTO_CONTINUOUS);
-            status = GXSetBool(hDevice,GX_ENUM_GAIN_AUTO, false);
+            //status = GXSetBool(hDevice,GX_ENUM_GAIN_AUTO, false);
 
             //发送开始采集命令
             status = GXSendCommand(hDevice, GX_COMMAND_ACQUISITION_START);

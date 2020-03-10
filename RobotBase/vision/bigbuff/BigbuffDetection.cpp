@@ -44,17 +44,19 @@ void BigbufDetection::filte_image(cv::Mat &im) {
     } else {
         subtract(BGR_channels[0], BGR_channels[2], result_img);
     }
+    imshow("re",result_img);
     threshold(gray, binary_brightness_img, gray_th_, 255, cv::THRESH_BINARY);
     threshold(result_img, binary_color_img, color_th_, 255, cv::THRESH_BINARY);
     ///test:
     imshow("binary_brightness_img", binary_brightness_img);
+
     imshow("binary_color_img", binary_color_img);
     im = binary_color_img & binary_brightness_img;
     //im = im & ref_im;
     //morphologyEx(im, im, 3, getStructuringElement(0, cv::Size(3, 3), cv::Point(2, 2)));
 
     cv::dilate(binary_color_img,binary_color_img,getStructuringElement(0, cv::Size(5, 5)));
-
+//
     cv::erode(binary_color_img,binary_color_img,getStructuringElement(0, cv::Size(5, 5)));
 }
 

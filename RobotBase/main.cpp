@@ -1,27 +1,26 @@
 ﻿
+#include <thread>
 #include "vision/vision_main.h"
-#include "roborts_sdk/sdk.h"
-#include "vision/gimbal/gimbal.h"
-#include "iniparser/iniparser.h"
+
 
 
 // global variable
 //char SERIAL_PORT[20] = "/dev/ttyACM0";
 char SERIAL_PORT[20] = "/dev/serial_sdk";
 #define CONNECT_TO_SERIAL 0
-Gimbal *gimbal = nullptr;
-std::shared_ptr<roborts_sdk::Handle> handle = nullptr;
+//Gimbal *gimbal = nullptr;
+//std::shared_ptr<roborts_sdk::Handle> handle = nullptr;
 
 using namespace cv;
 int main(int argc, char *argv[]) {
-
-    printf("+----------------------------+\n");
-    printf("|                            |\n");
-    printf("|                            |\n");
-    printf("|        VT Robogrinder      |\n");
-    printf("|                            |\n");
-    printf("|                            |\n");
-    printf("+----------------------------+\n");
+//
+//    printf("+----------------------------+\n");
+//    printf("|                            |\n");
+//    printf("|                            |\n");
+//    printf("|        VT Robogrinder      |\n");
+//    printf("|                            |\n");
+//    printf("|                            |\n");
+//    printf("+----------------------------+\n");
 
 #if CONNECT_TO_SERIAL
     auto handle = std::make_shared<roborts_sdk::Handle>(SERIAL_PORT);
@@ -34,7 +33,7 @@ int main(int argc, char *argv[]) {
     cv::createTrackbar("OFFSET_INT_Y", "Offset", &gimbal->OFFSET_INT_Y, 10000);
     cv::createTrackbar("OFFSET_INT_Z", "Offset", &gimbal->OFFSET_INT_Z, 10000);
 #else
-    gimbal = new Gimbal(nullptr);
+    //gimbal = new Gimbal(nullptr);
 #endif
 
     // New thread for vision function
@@ -42,11 +41,11 @@ int main(int argc, char *argv[]) {
 
     //Keep accepting the message from development board, the main thread services SDk
     while (1) {
-        if (CONNECT_TO_SERIAL)
-            handle->Spin();
+
         usleep(1000);
 
     }
+   // vision_main_thread.join();
     return 0;
 }
 

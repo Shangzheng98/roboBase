@@ -10,19 +10,11 @@ find_package(glog REQUIRED)
 find_package(OpenCV 4.1.0 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(realsense2 REQUIRED)
-include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(../)
 
 add_executable(RobotBase
-        RobotBase/vision/gimbal/gimbal.cpp
-        RobotBase/iniparser/dictionary.c
-        RobotBase/iniparser/iniparser.c
         RobotBase/main.cpp
-        #RobotBase/referee_system.cpp
-        RobotBase/roborts_sdk/dispatch/execution.cpp
-        RobotBase/roborts_sdk/dispatch/handle.cpp
-        RobotBase/roborts_sdk/hardware/serial_device.cpp
-        RobotBase/roborts_sdk/protocol/protocol.cpp
         RobotBase/vision/bigbuff/BigbuffDetection.cpp
         RobotBase/vision/vision_main.cpp
         RobotBase/vision/vision_main.h
@@ -34,23 +26,24 @@ add_executable(RobotBase
         RobotBase/record_video/recording_main.cpp
         RobotBase/record_video/recording_main.h
         RobotBase/vision/cam/Daheng.cpp
-        RobotBase/vision/cam/Daheng.cpp)
+        RobotBase/vision/cam/Daheng.cpp
+        RobotBase/serial_port.cpp)
 link_directories(../)
-target_link_libraries (RobotBase gxiapi)
+target_link_libraries(RobotBase gxiapi)
 target_link_libraries(RobotBase glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})
 message(${CMAKE_SYSTEM_PROCESSOR})
 
 # depend on the platform
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64" )
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     message("The current platform is arm")
     SET(CMAKE_BUILD_TYPE Release)
     message(FATAL_ERROR "CMAKE_BUILD_TYPE='${CMAKE_BUILD_TYPE}' is defined and non-empty ")
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=gnu++14")
 else ()
     message("The current platform is x86_64")
-    SET(CMAKE_BUILD_TYPE Debug)
+    SET(CMAKE_BUILD_TYPE Release)
     message("CMAKE_BUILD_TYPE='${CMAKE_BUILD_TYPE}' is defined")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread")
-endif()
+endif ()

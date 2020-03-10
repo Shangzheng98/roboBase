@@ -7,9 +7,9 @@
 
 #include <opencv2/opencv.hpp>
 #include <stdlib.h>
+#include <roboBase/RobotBase/serial_port.h>
 #include "../control.h"
 #include "armor.h"
-#include "../gimbal/gimbal.h"
 
 struct _OtherParam {
     uint8_t color = 0; //the self car color，0 blue，1 red
@@ -28,13 +28,17 @@ public:
 
     ~ArmorDetector() = default;
 
-    int armorTask(cv::Mat &img, OtherParam other_param);
+    int armorTask(cv::Mat &img, OtherParam other_param,serial_port sp);
 
-    bool DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect roi);
+    bool DetectArmor(cv::Mat &img, cv::Rect roi);
 
 public:
     int color_th_ = 13;
     int gray_th_ = 24;
+    int OFFSET_INT_YAW = 1800;
+    int OFFSET_INT_PITCH = 1800;
+    int OFFSET_YAW = 119;
+    int OFFSET_PITCH = -39;
 private:
     bool makeRectSafe(cv::Rect &rect, const cv::Size &size) {
         if (rect.x < 0)
@@ -61,13 +65,18 @@ private:
     uint8_t color_{};
     uint8_t mode_{};
     uint8_t level_;
+    std::vector<cv::Point2f> final_armor_2Dpoints;
+    cv::Mat cameraMatrix, distCoeffs;
 
 private:
     // 判断大小装甲板类型相关参数
     std::list<bool> history_;
     int filter_size_ = 5;
     bool is_small_{};
-
+    // Sam prediction
+    int yaw_array[3];
+    int yaw_array_count = 0;
+    int yaw_array_size = 1;
 };
 
 

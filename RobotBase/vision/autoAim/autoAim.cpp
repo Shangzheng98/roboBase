@@ -2,7 +2,11 @@
 // Created by jsz on 12/19/19.
 //
 
+
 #include "autoAim.h"
+
+
+
 
 using namespace cv;
 using namespace std;
@@ -45,7 +49,7 @@ cv::Rect ArmorDetector::GetRoi(const cv::Mat &img) {
     return rect_roi;
 }
 
-bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect roi) {
+bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     Mat roi_image = img(roi);
     Point2f offset_roi_point(roi.x, roi.y);
     vector<LED_bar> LED_bars;
@@ -125,7 +129,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect r
         }
     }
 //    //==========================================possible armor=========================================
-    printf("led bar number: %zu\n", LED_bars.size());
+    //printf("led bar number: %zu\n", LED_bars.size());
     for (size_t i = 0; i < LED_bars.size(); i++) {
         for (size_t j = i + 1; j < LED_bars.size(); j++) {
             armor temp_armor(LED_bars.at(i), LED_bars.at(j));
@@ -138,18 +142,18 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect r
             }
         }
     }
-//
     //====================================find final armors============================================
     vector<armor> final_armor_list;
+
     for (size_t i = 0; i < LED_bars.size(); i++) {
         if (LED_bars.at(i).matched) {
             LED_bars.at(LED_bars.at(i).match_index).matched = false; //clear another matching flag
             armor arm_tmp(LED_bars.at(i), LED_bars.at(LED_bars.at(i).match_index));
-            //arm_tmp.draw_rect(img, offset_roi_point);
+            arm_tmp.draw_rect(debug_img, offset_roi_point);
             final_armor_list.push_back(arm_tmp);
         }
     }
-    printf("final armor size %zu\n", final_armor_list.size());
+    //printf("final armor size %zu\n", final_armor_list.size());
 //
 //
     float dist = 1e8;
@@ -180,7 +184,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect r
 #endif
     if (found_flag) {
 #if SHOW_DRAW_SPOT
-        target.draw_spot(img, offset_roi_point);
+        target.draw_spot(debug_img, offset_roi_point);
 #endif
         Point2f point_tmp[4];
         Point2f point_2d[4];
@@ -200,32 +204,37 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Point3f &target_3d, cv::Rect r
         point_2d[1] = point_tmp[2];
         point_2d[2] = point_tmp[3];
         vector<Point2f> points_roi_tmp;
+        final_armor_2Dpoints.clear();
         for (int i = 0; i < 4; i++) {
             points_roi_tmp.push_back(point_2d[i] + offset_roi_point);
+            final_armor_2Dpoints.push_back(point_2d[i] + offset_roi_point);
+            circle(debug_img, final_armor_2Dpoints.at(i), 5, Scalar(255, 255, 255), -1);
+            circle(debug_img, final_armor_2Dpoints.at(i), 3, Scalar(i * 50, i * 50, 255), -1);
         }
+
         float armor_h = target.rect.height;
         float armor_w = target.rect.width;
         is_small_ = armor_w / armor_h < 3.3f;
 
-        //计算ROI的相关参数
+        //get the new target
         last_target_ = boundingRect(points_roi_tmp);
 #if SHOW_LAST_TARGET
         rectangle(debug_img, last_target_, Scalar(255, 255, 255), 1);
 
 #endif
         lost_count = 0;
-        target_3d.x = last_target_.x + (last_target_.width) / 2;
-        target_3d.y = last_target_.y + (last_target_.height) / 2;
+        //target_3d.x = last_target_.x + (last_target_.width) / 2;
+        //target_3d.y = last_target_.y + (last_target_.height) / 2;
     } else {
         lost_count++;
     }
     detect_count++;
 
-    imshow("debug_img", debug_img);
+    //imshow("debug_img", debug_img);
     return found_flag;
 }
 
-int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param) {
+int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port sp) {
     color_ = other_param.color;
     mode_ = other_param.mode;
     level_ = other_param.level;
@@ -237,27 +246,89 @@ int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param) {
     Rect roi = Rect(0, 0, img_size.width, img_size.height);
 #endif
     Point3f target_3d = {0, 0, 0};
+    Mat rvec;
+    Mat tvec;
 
-    DetectArmor(color, target_3d, roi);
-    float target_2d_color_pixel[2] = {target_3d.x, target_3d.y};
-    float target_2d_depth_pixel[2] = {};
-    float world_target_3d_temp[3] = {};
-    Point3f world_target_3d;
-//    rs2_project_color_pixel_to_depth_pixel(target_2d_depth_pixel,
-//                                           reinterpret_cast<const uint16_t *>(frames.get_depth_frame().get_data()),
-//                                           0.001, 0, 10, &depth_intrinsics, &color_intrinsics,
-//                                           &color_extrin_to_depth, &depth_extrin_to_color, target_2d_color_pixel);
+    if (DetectArmor(color, roi)) {
+        vector<cv::Point3f> real_armor_points;
+        float x, y, z, width = 0.0f, height = 0.0f;
+        if (is_small_) {
+            width = 140;
+            height = 60;
+        } else {
+            width = 230;
+            height = 60;
+        }
 
-    //auto dis = frames.get_depth_frame().get_distance(target_2d_depth_pixel[0],target_2d_depth_pixel[1]);
-    //rs2_deproject_pixel_to_point(world_target_3d_temp, &depth_intrinsics, target_2d_color_pixel, dis);
+        x = -width / 2;
+        y = height / 2;
+        z = 0;
+        real_armor_points.emplace_back(x, y, z);
+        x = width / 2;
+        y = height / 2;
+        z = 0;
+        real_armor_points.emplace_back(x, y, z);
+        x = width / 2;
+        y = -height / 2;
+        z = 0;
+        real_armor_points.emplace_back(x, y, z);
+        x = -width / 2;
+        y = -height / 2;
+        z = 0;
+        real_armor_points.emplace_back(x, y, z);
+        cameraMatrix = (Mat_<double>(3, 3) << 1293.5303221625442802, 0.3651215140945823, 355.9091806402759630,
+                0.0000000000000000, 1293.9256252855957428, 259.1868664367483461,
+                0.0000000000000000, 0.0000000000000000, 1.0000000000000000);
+
+        distCoeffs = (Mat_<double>(1, 5)
+                << -0.2126367859619807, 0.2282910064864265, 0.0020583387355406, 0.0006136511397638, -0.7559987171745171);
+        if (final_armor_2Dpoints.size() != 4) {
+            //printf("size: %zu\n", final_armor_2Dpoints.size());
+            return 1;
+        }
+        solvePnP(real_armor_points, final_armor_2Dpoints, cameraMatrix, distCoeffs, rvec, tvec);
+//
+        target_3d = cv::Point3f(tvec);
+        printf("x:%f y:%f z:%f\n", target_3d.x, target_3d.y, target_3d.z);
+//
+
+        //OFFSET_YAW = (double) (OFFSET_INT_YAW - 1800);
+        //OFFSET_PITCH = (double) (OFFSET_INT_PITCH - 1800);
+        int pitch = int((atan2(target_3d.y - 80, target_3d.z)+ (float) (OFFSET_PITCH * CV_PI / 1800)) *0.6 * 10000);
+        //int pitch = 15000;
+        int yaw = int((-atan2(target_3d.x, target_3d.z) +(float) (OFFSET_YAW * CV_PI / 1800)) * 10000);
+        //int yaw = -15000;
+        //printf("yaw: %d, pitch: %d\n", yaw, pitch);
+        //pitch_vector.push_back((float)pitch/10000);
+        yaw_array[yaw_array_count] = yaw;
+        yaw_array_count++;
+        yaw_array_size++;
+        if (yaw_array_count > 2)
+            yaw_array_count = 0;
+        if (yaw_array_size > 3)
+            yaw_array_size = 3;
+        float total = 0;
+        for (int i = 0; i < yaw_array_size; i++) {
+            total += yaw_array[i];
+            //printf("%d ", yaw_array[i]);
+        }
+        total = (float)(total / (yaw_array_size));
+        printf("\npredit speed: %f\n", total);
+        yaw += total * 1.6f;
+
+        struct serial_gimbal_data data;
+        data.size = 6;
+        data.rowData[0] = data.head;
+        data.rowData[1] = data.id;
+        data.rowData[2] = pitch;
+        data.rowData[3] = pitch >> 8;
+        data.rowData[4] = yaw;
+        data.rowData[5] = yaw >> 8;
 
 
-    //world_target_3d = {(world_target_3d_temp[0]) / 10, world_target_3d_temp[1] / 10, (world_target_3d_temp[2]) / 10};
-//    printf("target_2d_color_pixel X: %f, Y:%f\n ", target_2d_color_pixel[0], target_2d_color_pixel[1]);
-//    printf("target_2d_depth_pixel X: %f, Y:%f\n ", target_2d_depth_pixel[0], target_2d_depth_pixel[1]);
-//    printf("未转化坐标深度: %0.2f\n",frames.get_depth_frame().get_distance(target_2d_color_pixel[0],target_2d_color_pixel[1]));
-//    printf("转化后坐标深度： %0.2f\n",dis);
-    //gimbal->AimAtArmor(world_target_3d, true);
+        sp.send_data(data);
+
+
+    }
+
 }
-
-

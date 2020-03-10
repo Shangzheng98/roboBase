@@ -3,7 +3,7 @@
 //
 
 #include "vision_main.h"
-
+#include <roboBase/RobotBase/serial_port.h>
 using namespace cv;
 
 void *vision_main_function() {
@@ -16,16 +16,19 @@ void *vision_main_function() {
         printf("fail to init lib\n");
         return nullptr;
     }
-    namedWindow("control", WINDOW_AUTOSIZE);
-    BigbufDetection bigbuff =  BigbufDetection(640,480,1);
-    createTrackbar("color_th", "control", &bigbuff.color_th_, 255);
-    createTrackbar("gray_th", "control", &bigbuff.gray_th_, 255);
+    namedWindow("offset", WINDOW_AUTOSIZE);
+    char *name = "/dev/ttyUSB0";
+    serial_port sp(name, B115200);
+    //BigbufDetection bigbuff =  BigbufDetection(640,480,1);
+    //createTrackbar("offset_YAW", "offset", &armorDetector.OFFSET_INT_YAW, 3600);
+    //createTrackbar("offset_PITCH", "offset", &armorDetector.OFFSET_INT_PITCH, 3600);
     Mat color;
 
     while (1) {
-        otherParam.level = gimbal->level;
-        otherParam.id = gimbal->id;
-        otherParam.mode = gimbal->current_mode;
+        otherParam.level = 0;//gimbal->level
+        otherParam.id =0;// gimbal->id;
+        otherParam.mode =0;// gimbal->current_mode;
+
         if (otherParam.id == 13) // blue 3
         {
             otherParam.color = 0; //opposite is red
@@ -41,12 +44,12 @@ void *vision_main_function() {
 
             break;
         }
-//        auto time0 = static_cast<double>(getTickCount());
-        //armorDetector.armorTask(color,otherParam);
-        //time0 = ((double) getTickCount() - time0) / getTickFrequency();
-        //std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
-        bigbuff.feed_im(color);
-        bigbuff.getTest_result();
+        auto time0 = static_cast<double>(getTickCount());
+        armorDetector.armorTask(color,otherParam,sp);
+        time0 = ((double) getTickCount() - time0) / getTickFrequency();
+        std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
+        //bigbuff.feed_im(color);
+        //bigbuff.getTest_result();
         //imshow("test",color);
         if (waitKey(1) == 'q') {
 
