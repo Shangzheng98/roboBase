@@ -27,7 +27,8 @@ add_executable(RobotBase
         RobotBase/record_video/recording_main.h
         RobotBase/vision/cam/Daheng.cpp
         RobotBase/vision/cam/Daheng.cpp
-        RobotBase/serial_port.cpp)
+        RobotBase/Robogrinder_SDK/serial_port.cpp
+        )
 link_directories(../)
 target_link_libraries(RobotBase gxiapi)
 target_link_libraries(RobotBase glog)

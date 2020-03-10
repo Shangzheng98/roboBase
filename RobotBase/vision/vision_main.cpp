@@ -3,7 +3,7 @@
 //
 
 #include "vision_main.h"
-#include <roboBase/RobotBase/serial_port.h>
+#include <roboBase/RobotBase/Robogrinder_SDK/serial_port.h>
 using namespace cv;
 
 void *vision_main_function() {
@@ -17,7 +17,7 @@ void *vision_main_function() {
         return nullptr;
     }
     namedWindow("offset", WINDOW_AUTOSIZE);
-    char *name = "/dev/ttyUSB0";
+    char name[20] = "/dev/ttyUSB0";
     serial_port sp(name, B115200);
     //BigbufDetection bigbuff =  BigbufDetection(640,480,1);
     //createTrackbar("offset_YAW", "offset", &armorDetector.OFFSET_INT_YAW, 3600);

@@ -7,7 +7,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <stdlib.h>
-#include <roboBase/RobotBase/serial_port.h>
+#include <roboBase/RobotBase/Robogrinder_SDK/serial_port.h>
 #include "../control.h"
 #include "armor.h"
 

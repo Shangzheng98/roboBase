@@ -9,8 +9,8 @@
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 class serial_port {
 public:
     serial_port();
