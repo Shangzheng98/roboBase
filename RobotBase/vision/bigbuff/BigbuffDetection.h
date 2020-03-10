@@ -7,6 +7,8 @@
 #include "opencv2/opencv.hpp"
 #include <time.h>
 
+#define LEN_RATIO(a,b) (a>b)?(a/b):(b/a)
+
 struct frame_info{
 
     clock_t f_time;
