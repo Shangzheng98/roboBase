@@ -6,8 +6,6 @@
 #include "autoAim.h"
 
 
-
-
 using namespace cv;
 using namespace std;
 
@@ -133,10 +131,13 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     for (size_t i = 0; i < LED_bars.size(); i++) {
         for (size_t j = i + 1; j < LED_bars.size(); j++) {
             armor temp_armor(LED_bars.at(i), LED_bars.at(j));
-            if (temp_armor.error_angle < 7.0f) {
+            if (temp_armor .error_angle < 7.0f) {
                 if (temp_armor.is_suitable_size()) {
+                    //temp_armor.draw_rect(debug_img,offset_roi_point);
                     if (temp_armor.get_average_intensity(gray) < 70) {
+
                         temp_armor.max_match(LED_bars, i, j);
+
                     }
                 }
             }
@@ -149,7 +150,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
         if (LED_bars.at(i).matched) {
             LED_bars.at(LED_bars.at(i).match_index).matched = false; //clear another matching flag
             armor arm_tmp(LED_bars.at(i), LED_bars.at(LED_bars.at(i).match_index));
-            arm_tmp.draw_rect(debug_img, offset_roi_point);
+            //arm_tmp.draw_rect(debug_img, offset_roi_point);
             final_armor_list.push_back(arm_tmp);
         }
     }
@@ -230,7 +231,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     }
     detect_count++;
 
-    //imshow("debug_img", debug_img);
+    imshow("debug_img", debug_img);
     return found_flag;
 }
 
@@ -248,8 +249,10 @@ int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port
     Point3f target_3d = {0, 0, 0};
     Mat rvec;
     Mat tvec;
-
+    OFFSET_YAW = (double) (OFFSET_INT_YAW - 1800);
+    OFFSET_PITCH = (double) (OFFSET_INT_PITCH - 1800);
     if (DetectArmor(color, roi)) {
+        printf("detected\n");
         vector<cv::Point3f> real_armor_points;
         float x, y, z, width = 0.0f, height = 0.0f;
         if (is_small_) {
@@ -282,53 +285,65 @@ int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port
 
         distCoeffs = (Mat_<double>(1, 5)
                 << -0.2126367859619807, 0.2282910064864265, 0.0020583387355406, 0.0006136511397638, -0.7559987171745171);
-        if (final_armor_2Dpoints.size() != 4) {
-            //printf("size: %zu\n", final_armor_2Dpoints.size());
-            return 1;
-        }
-        solvePnP(real_armor_points, final_armor_2Dpoints, cameraMatrix, distCoeffs, rvec, tvec);
-//
+//        if (final_armor_2Dpoints.size() != 4) {
+//            //printf("size: %zu\n", final_armor_2Dpoints.size());
+//            return 1;
+//        }
+
+        solvePnP(real_armor_points, final_armor_2Dpoints, cameraMatrix, distCoeffs, rvec, tvec, false, SOLVEPNP_ITERATIVE);
+
         target_3d = cv::Point3f(tvec);
         printf("x:%f y:%f z:%f\n", target_3d.x, target_3d.y, target_3d.z);
-//
 
-        //OFFSET_YAW = (double) (OFFSET_INT_YAW - 1800);
-        //OFFSET_PITCH = (double) (OFFSET_INT_PITCH - 1800);
-        int pitch = int((atan2(target_3d.y - 80, target_3d.z)+ (float) (OFFSET_PITCH * CV_PI / 1800)) *0.6 * 10000);
+
+        int pitch = int((atan2(target_3d.y - 80, target_3d.z) + (float) (OFFSET_PITCH * CV_PI / 1800)) * 0.6 * 10000);
         //int pitch = 15000;
-        int yaw = int((-atan2(target_3d.x, target_3d.z) +(float) (OFFSET_YAW * CV_PI / 1800)) * 10000);
+        int yaw = int((-atan2(target_3d.x, target_3d.z) + (float) (OFFSET_YAW * CV_PI / 1800))*0.4 * 10000);
         //int yaw = -15000;
         //printf("yaw: %d, pitch: %d\n", yaw, pitch);
         //pitch_vector.push_back((float)pitch/10000);
-        yaw_array[yaw_array_count] = yaw;
-        yaw_array_count++;
-        yaw_array_size++;
-        if (yaw_array_count > 2)
-            yaw_array_count = 0;
-        if (yaw_array_size > 3)
-            yaw_array_size = 3;
-        float total = 0;
-        for (int i = 0; i < yaw_array_size; i++) {
-            total += yaw_array[i];
-            //printf("%d ", yaw_array[i]);
-        }
-        total = (float)(total / (yaw_array_size));
-        printf("\npredit speed: %f\n", total);
-        yaw += total * 1.6f;
+//        yaw_array[yaw_array_count] = yaw;
+//        yaw_array_count++;
+//        yaw_array_size++;
+//        if (yaw_array_count > 2)
+//            yaw_array_count = 0;
+//        if (yaw_array_size > 3)
+//            yaw_array_size = 3;
+//        float total = 0;
+//        for (int i = 0; i < yaw_array_size; i++) {
+//            total += yaw_array[i];
+//            //printf("%d ", yaw_array[i]);
+//        }
+//        total = (float)(total / (yaw_array_size));
+//        printf("\npredit speed: %f\n", total);
+//        yaw += total * 1.4f;
 
         struct serial_gimbal_data data;
         data.size = 6;
-        data.rowData[0] = data.head;
-        data.rowData[1] = data.id;
-        data.rowData[2] = pitch;
-        data.rowData[3] = pitch >> 8;
-        data.rowData[4] = yaw;
-        data.rowData[5] = yaw >> 8;
+        data.rawData[0] = data.head;
+        data.rawData[1] = data.id;
+        data.rawData[2] = pitch;
+        data.rawData[3] = pitch >> 8;
+        data.rawData[4] = yaw;
+        data.rawData[5] = yaw >> 8;
+
+        sp.send_data(data);
+    } else {
+        printf("not detected\n");
+        int pitch = 0;
+        //int pitch = 15000;
+        int yaw = 0;
+        struct serial_gimbal_data data;
+        data.size = 6;
+        data.rawData[0] = data.head;
+        data.rawData[1] = data.id;
+        data.rawData[2] = pitch;
+        data.rawData[3] = pitch >> 8;
+        data.rawData[4] = yaw;
+        data.rawData[5] = yaw >> 8;
 
 
         sp.send_data(data);
-
-
     }
 
 }

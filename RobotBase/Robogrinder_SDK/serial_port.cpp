@@ -18,7 +18,7 @@ serial_port::serial_port(char *serial_name, int buadrate) {
         return;
     } else if (fd != -1) {
         fcntl(fd, F_SETFL, 0);
-        printf("port is open %s .\n", serial_name_);
+        printf(" %s port is opened.\n open success", serial_name_);
     }
 
     struct termios port_settings;
@@ -42,17 +42,30 @@ serial_port::serial_port(char *serial_name, int buadrate) {
     port_settings.c_cc[VMIN] = 10;           // read doesn't block
     port_settings.c_cc[VTIME] = 5;
 
-    tcsetattr(fd,TCSANOW, &port_settings);
+    tcsetattr(fd, TCSANOW, &port_settings);
 
 }
 
+//struct serial_gimbal_data serial_port::pack_gimbal_data(const struct gimbal_msg &data) {
+//    struct serial_gimbal_data packed_data;
+//    packed_data.size = 6;
+//    packed_data.rawData[0] = packed_data.head;
+//    packed_data.rawData[1] = packed_data.id;
+//    packed_data.rawData[2] = data.pitch;
+//    packed_data.rawData[3] = data.pitch >> 8;
+//    packed_data.rawData[4] = data.yaw;
+//    packed_data.rawData[5] = data.yaw >> 8;
+//
+//    return packed_data;
+//}
+
 void serial_port::send_data(const struct serial_gimbal_data &data) {
-    int re = write(fd,data.rowData,data.size);
-    if (data.size != re)
-    {
+    int re = write(fd, data.rawData, data.size);
+    if (data.size != re) {
         std::cout << "!!! send data failure !!!" << fd << std::endl;
     }
 }
+
 
 void serial_port::restart_serial_port() {
 

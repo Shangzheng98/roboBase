@@ -8,24 +8,24 @@
 #include <stdint.h>
 struct serial_gimbal_data
 {
-    uint8_t rowData[20];
-    int head = 0xaf;
-    int id = 1;
+    uint8_t rawData[20];
+    const int head = 0xaf;
+    const int id = 1;
     int size;
 };
 
 struct serial_friction_data
 {
-    char rowData[20];
-    int head = 0xcc;
+    char rawData[20];
+    int head = 0xaf;
     int id  = 2;
     int size;
 };
 
 struct serical_recive_data
 {
-    char rowData[10];
-    int head = 0xaa;
+    char rawData[10];
+    int head = 0xaf;
     int id = 3;
     int size;
 };

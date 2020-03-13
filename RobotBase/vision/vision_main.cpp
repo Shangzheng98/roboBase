@@ -20,8 +20,8 @@ void *vision_main_function() {
     char name[20] = "/dev/ttyUSB0";
     serial_port sp(name, B115200);
     //BigbufDetection bigbuff =  BigbufDetection(640,480,1);
-    //createTrackbar("offset_YAW", "offset", &armorDetector.OFFSET_INT_YAW, 3600);
-    //createTrackbar("offset_PITCH", "offset", &armorDetector.OFFSET_INT_PITCH, 3600);
+    createTrackbar("offset_YAW", "offset", &armorDetector.OFFSET_INT_YAW, 3600);
+    createTrackbar("offset_PITCH", "offset", &armorDetector.OFFSET_INT_PITCH, 3600);
     Mat color;
 
     while (1) {
@@ -46,8 +46,8 @@ void *vision_main_function() {
         }
         auto time0 = static_cast<double>(getTickCount());
         armorDetector.armorTask(color,otherParam,sp);
-        time0 = ((double) getTickCount() - time0) / getTickFrequency();
-        std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
+        //time0 = ((double) getTickCount() - time0) / getTickFrequency();
+        //std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
         //bigbuff.feed_im(color);
         //bigbuff.getTest_result();
         //imshow("test",color);
