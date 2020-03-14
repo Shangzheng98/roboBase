@@ -5,10 +5,34 @@
 #include "BigbuffDetection.h"
 
 
-BigbufDetection::BigbufDetection(int cols, int rows, bool test){
+BigbufDetection::BigbufDetection(int cols, int rows){
     this->IMAGE_COLS = cols;
     this->IMAGE_ROWS = rows;
-    this->test = test;
+
+    /// solvepnp Data
+    float x, y, z, width = 0.0f, height = 0.0f;
+    width = 140;
+    height = 60;
+
+
+    x = -width / 2;
+    y = height / 2;
+    z = 0;
+    this->real_armor_points.emplace_back(x, y, z);
+    x = width / 2;
+    y = height / 2;
+    z = 0;
+    this->real_armor_points.emplace_back(x, y, z);
+    x = width / 2;
+    y = -height / 2;
+    z = 0;
+    this->real_armor_points.emplace_back(x, y, z);
+    x = -width / 2;
+    y = -height / 2;
+    z = 0;
+    this->real_armor_points.emplace_back(x, y, z);
+    cv::createTrackbar("offset_YAW","offset",&this->OFFSET_YAW,3600);
+    cv::createTrackbar("offset_PITCH","offset",&this->OFFSET_PITCH,3600);
 }
 
 void BigbufDetection::refresh_frames() {
@@ -35,7 +59,8 @@ void BigbufDetection::filte_image(cv::Mat &im) {
     std::vector<cv::Mat> BGR_channels;
     split(im, BGR_channels);
     ///test:
-    cv::imshow("Color",im);
+    SHOW_IM("Color",im);
+    this->RGBim = im;
     if (this->color_ == 0) // opposite red
     {
         subtract(BGR_channels[2], BGR_channels[1],result_img);
@@ -45,8 +70,8 @@ void BigbufDetection::filte_image(cv::Mat &im) {
     threshold(gray, binary_brightness_img, gray_th_, 255, cv::THRESH_BINARY);
     threshold(result_img, binary_color_img, color_th_, 255, cv::THRESH_BINARY);
     ///test:
-    imshow("binary_brightness_img", binary_brightness_img);
-    imshow("binary_color_img", binary_color_img);
+    SHOW_IM("binary_brightness_img", binary_brightness_img);
+    SHOW_IM("binary_color_img", binary_color_img);
     im = binary_color_img & binary_brightness_img;
 
     cv::dilate(im,im,getStructuringElement(0, cv::Size(5, 5)));
@@ -76,19 +101,19 @@ bool  BigbufDetection::contour_valid(std::vector<cv::Point>& contour){
     ///// notice that l_ratio is always bigger than 0
     float l_ratio;
     l_ratio = LEN_RATIO(rect.size.height,rect.size.width);
-    if(l_ratio<1.9 || 2.15< l_ratio)
+    if(l_ratio<1.9 || 2.2< l_ratio)
         return false;
 
 
     float a_ratio = rect.size.area()/area;
     ///test///std::cout<< "AREA RATIO:  "<<a_ratio<<std::endl;
     /// TO DO: set threshold
-    if(a_ratio < 1.8 || a_ratio>2.2)
+    if(a_ratio < 1.9 || a_ratio>2.25)
         return false;
 
     ///test:
     drawContour_Rec(rect, image);
-    std::cout<<this->sample_num<< "   "<<l_ratio << "   "<<a_ratio<<std::endl;
+    //DISP(this->sample_num<< "   "<<l_ratio << "   "<<a_ratio);
     sample_num ++;
     ////
 
@@ -97,16 +122,16 @@ bool  BigbufDetection::contour_valid(std::vector<cv::Point>& contour){
 
 
 
-cv::Point2f BigbufDetection::locate_target(cv::Mat &im) {
+void BigbufDetection::locate_target(cv::Mat &im) {
 
 
     std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarcy;
 
-    cv::findContours(im, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+    cv::findContours(im, contours,hierarcy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
     frame_info target;
 
     for(int ind = 0; ind < contours.size(); ind++){
-        cv::approxPolyDP(contours[ind],contours[ind],1,true);
         if( contour_valid(contours[ind]) ){
             cv::RotatedRect rect = cv::minAreaRect(contours[ind]);
             cv::Moments M = cv::moments(contours[ind]);
@@ -119,34 +144,41 @@ cv::Point2f BigbufDetection::locate_target(cv::Mat &im) {
             cv::Vec4f line;
             cv::fitLine(contours[ind],line,cv::DIST_L2,0,0.01,0.01);
             cv::Point2f direc = cv::Point2f(line[0],line[1]);
-            cv::Point2f inlin = cv::Point2f(line[2],line[3]);
-
 
             cv::Point2f v = rect.center-mass_ctr;
             v = (direc.dot(v)>0)?(direc):(-direc);
             v = v/sqrt(v.dot(v)); //normalize
             float long_side = (rect.size.height>rect.size.width)?(rect.size.height):(rect.size.width);
             cv::Point2f c_R = mass_ctr + (long_side*13/14)*v;
-            cv::Point2f a_vector = (long_side*8/7)*v;
+            cv::Point2f a_vector = mass_ctr-(long_side*1/5)*v;
 
             cv::circle(im,c_R,4,cv::Scalar(255,255,255),2);
-            target.center = rect.center;
-            return rect.center;
+            cv::circle(im,a_vector,1,cv::Scalar(255,255,255),1);
+
+            if(hierarcy[ind][2] == -1) {
+                std::cout<< "None"<<std::endl;
+                return;
+            }
+            cv::RotatedRect inner_rect = cv::minAreaRect(contours[hierarcy[ind][2]]);
+            cv::ellipse(this->RGBim,inner_rect,cv::Scalar(0,0,255),3);
+            SHOW_IM("RGB",this->RGBim);
+            cv::Point2f rect_points[4];
+            inner_rect.points(rect_points);
+            std::vector<cv::Point2f> armor_points;
+            for(int n =0; n<4;n++) armor_points.push_back(rect_points[n]);
+
+
+            target.center= c_R;
+            target.angular_vector = a_vector;
+            target.f_time = clock();
+            target.armor_points = armor_points;
+            record_info(target);
+            return;
         }
     }
-    target.center = cv::Point2f(0,0);
-    return cv::Point2f(0,0);
-
-
 }
 
-void BigbufDetection::record_info(clock_t t, cv::Point2f& pos) {
-    if (pos.x==0 && pos.y==0) /// exceptional case
-        return;
-
-    struct frame_info frameInfo;
-    frameInfo.f_time = t;
-    frameInfo.center = pos;
+void BigbufDetection::record_info(frame_info frameInfo) {
 
     this->frames.insert(frames.begin(), frameInfo);
     refresh_frames();
@@ -155,29 +187,42 @@ void BigbufDetection::record_info(clock_t t, cv::Point2f& pos) {
 void BigbufDetection::feed_im(cv::Mat& input_image) {
 
     // check
-    if( !this->test && (input_image.cols != this->IMAGE_COLS || input_image.rows != this->IMAGE_ROWS))
-        return;
-
-    clock_t t = clock();
+//    if(  input_image.cols != this->IMAGE_COLS || input_image.rows != this->IMAGE_ROWS)
+//          return;
 
     this->image = input_image;
 
     filte_image(this->image);
 
-    cv::Point2f target = locate_target(this->image);
-
-    //record_info(t,target);
+    locate_target(this->image);
 
 }
 
 void BigbufDetection::getTest_result() {
-    if(!frames.empty())
-        cv::circle(this->image,frames[0].center,4,cv::Scalar(233,233,233),3);
-    if(!this->image.empty());
-        cv::imshow("Test result",this->image);
 
+    if(!this->image.rows==0)
+        SHOW_IM("Test result",this->image);
 }
 
-void BigbufDetection::make_prediction() {
+void BigbufDetection::make_prediction(serial_port sp) {
+    cv::Mat rvec,tvec;
+    cv::Point3f target_3d;
+    std::vector<cv::Point2f> armor_points = this->frames[0].armor_points;
+    cv::solvePnP(this->real_armor_points, armor_points, cameraMatrix, distCoeffs, rvec, tvec);
+    target_3d = cv::Point3f(tvec);
+    int pitch = int((atan2(target_3d.y - 80, target_3d.z)+ (float) (OFFSET_PITCH * CV_PI / 1800))*0.6 * 10000);
+    //int pitch = 15000;
+    int yaw = int((-atan2(target_3d.x, target_3d.z) + (float) (OFFSET_PITCH * CV_PI / 1800)) *0.6* 10000);
+    DISP("yaw"<<yaw);
+    DISP("pitch"<<pitch);
+    serial_gimbal_data data;
+    data.size = 6;
+    data.rowData[0]= data.head;
+    data.rowData[1]= data.id;
+    data.rowData[2] = pitch;
+    data.rowData[3] = pitch >> 8;
+    data.rowData[4] = yaw;
+    data.rowData[5] = yaw >> 8;
 
+    sp.send_data(data);
 }
