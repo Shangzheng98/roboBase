@@ -72,8 +72,8 @@ private:
 
 public:
 
-    int OFFSET_YAW = 36;
-    int OFFSET_PITCH = 36;
+    int OFFSET_YAW = 3600;
+    int OFFSET_PITCH = 3600;
     // constructor: information about camera
     BigbufDetection(int cols, int rows);
 
