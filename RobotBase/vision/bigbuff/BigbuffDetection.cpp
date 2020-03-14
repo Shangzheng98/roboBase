@@ -217,12 +217,12 @@ void BigbufDetection::make_prediction(serial_port sp) {
     DISP("pitch"<<pitch);
     serial_gimbal_data data;
     data.size = 6;
-    data.rowData[0]= data.head;
-    data.rowData[1]= data.id;
-    data.rowData[2] = pitch;
-    data.rowData[3] = pitch >> 8;
-    data.rowData[4] = yaw;
-    data.rowData[5] = yaw >> 8;
+    data.rawData[0]= data.head;
+    data.rawData[1]= data.id;
+    data.rawData[2] = pitch;
+    data.rawData[3] = pitch >> 8;
+    data.rawData[4] = yaw;
+    data.rawData[5] = yaw >> 8;
 
     sp.send_data(data);
 }
