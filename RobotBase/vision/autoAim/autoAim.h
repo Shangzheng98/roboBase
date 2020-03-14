@@ -28,7 +28,7 @@ public:
 
     ~ArmorDetector() = default;
 
-    int armorTask(cv::Mat &img, OtherParam other_param,serial_port sp);
+    int armorTask(cv::Mat &img, OtherParam other_param, serial_port sp);
 
     bool DetectArmor(cv::Mat &img, cv::Rect roi);
 
@@ -37,8 +37,11 @@ public:
     int gray_th_ = 24;
     int OFFSET_INT_YAW = 1800;
     int OFFSET_INT_PITCH = 1800;
-    int OFFSET_YAW = 119;
-    int OFFSET_PITCH = -39;
+    // infintry
+//    int OFFSET_YAW = 119;
+//    int OFFSET_PITCH = -39;
+    int OFFSET_YAW = 0;
+    int OFFSET_PITCH = 0;
 private:
     bool makeRectSafe(cv::Rect &rect, const cv::Size &size) {
         if (rect.x < 0)

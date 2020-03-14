@@ -16,8 +16,8 @@ armor::armor(const LED_bar &left, const LED_bar &right) {
     rect.height = static_cast<int>((left.rect.size.height + right.rect.size.height) / 2);
     center.x = static_cast<int>((left.rect.center.x + right.rect.center.x) / 2);
     center.y = static_cast<int>((left.rect.center.y + right.rect.center.y) / 2);
-    rect.x =center.x - rect.width/3;
-    rect.y =center.y - rect.height/3;
+    rect.x = center.x - rect.width / 3;
+    rect.y = center.y - rect.height / 3;
     rect.width *= 2.0 / 3;
     rect.height *= 2.0 / 3;
 }
@@ -41,12 +41,12 @@ void armor::draw_spot(Mat &img, Point2f roi_offset_point) const {
 
 bool armor::is_suitable_size() {
     auto light_dis = std::sqrt((led_bars[0].rect.center.x - led_bars[1].rect.center.x) *
-                               (led_bars[0].rect.center.x - led_bars[1].rect.center.x) +
-                               (led_bars[0].rect.center.y - led_bars[1].rect.center.y) *
-                               (led_bars[0].rect.center.y - led_bars[1].rect.center.y));
-    if (led_bars[0].rect.size.height * 0.7f < led_bars[1].rect.size.height
-        && led_bars[0].rect.size.height * 1.3f > led_bars[1].rect.size.height && light_dis<200) {
+                                  (led_bars[0].rect.center.x - led_bars[1].rect.center.x) +
+                                  (led_bars[0].rect.center.y - led_bars[1].rect.center.y) *
+                                  (led_bars[0].rect.center.y - led_bars[1].rect.center.y));
 
+    if (led_bars[0].rect.size.height * 0.7f < led_bars[1].rect.size.height
+        && led_bars[0].rect.size.height * 1.3f > led_bars[1].rect.size.height && light_dis < 575.0f) {
         float armor_width = fabs(led_bars[0].rect.center.x - led_bars[1].rect.center.x);
 
         if (armor_width > led_bars[0].rect.size.width
@@ -57,7 +57,7 @@ bool armor::is_suitable_size() {
             // 两个灯条高度差不大
             if (fabs(led_bars[0].rect.center.y - led_bars[1].rect.center.y) < 1.0f * h_max) {
                 // 长宽比判断
-                if (h_max * 4.0f > rect.width && h_max < 1.2f * rect.width) {
+                if (h_max * 4.0f > rect.width && h_max < 1.1f * rect.width) {
                     return true;
                 }
             }
