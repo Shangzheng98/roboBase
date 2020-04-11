@@ -8,6 +8,7 @@
 #include <time.h>
 #include <roboBase/RobotBase/Robogrinder_SDK/serial_port.h>
 #include <roboBase/RobotBase/Robogrinder_SDK/message.h>
+#include "pred_algrsm.h"
 
 #define DEBUG 1
 #if DEBUG
@@ -40,6 +41,7 @@ private:
     int IMAGE_ROWS;
     cv::Mat image;
     cv::Mat RGBim;
+    serial_port SP;
     int sample_num = 0;
     uint8_t color_ = 1;
     clock_t t_ms = clock();
@@ -61,7 +63,7 @@ private:
 
     void filte_image(cv::Mat &im);
 
-    void locate_target(cv::Mat &im);
+    bool locate_target(cv::Mat &im);
 
     void record_info( frame_info frameInfo);
 
@@ -75,13 +77,13 @@ public:
     int OFFSET_YAW = 3600;
     int OFFSET_PITCH = 3600;
     // constructor: information about camera
-    BigbufDetection(int cols, int rows);
+    BigbufDetection(int cols, int rows,serial_port &sp);
 
     void feed_im(cv::Mat& input_image);
 
     void getTest_result();
 
-    void make_prediction(serial_port sp);
+    void make_prediction();
 
 public:
     int color_th_ = 130;//131

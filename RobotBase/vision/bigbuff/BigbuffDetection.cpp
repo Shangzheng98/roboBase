@@ -5,9 +5,10 @@
 #include "BigbuffDetection.h"
 
 
-BigbufDetection::BigbufDetection(int cols, int rows){
+BigbufDetection::BigbufDetection(int cols, int rows,serial_port &sp){
     this->IMAGE_COLS = cols;
     this->IMAGE_ROWS = rows;
+    this->SP = sp;
 
     /// solvepnp Data
     float x, y, z, width = 0.0f, height = 0.0f;
@@ -122,7 +123,7 @@ bool  BigbufDetection::contour_valid(std::vector<cv::Point>& contour){
 
 
 
-void BigbufDetection::locate_target(cv::Mat &im) {
+bool BigbufDetection::locate_target(cv::Mat &im) {
 
 
     std::vector<std::vector<cv::Point>> contours;
@@ -157,7 +158,7 @@ void BigbufDetection::locate_target(cv::Mat &im) {
 
             if(hierarcy[ind][2] == -1) {
                 std::cout<< "None"<<std::endl;
-                return;
+                return false;
             }
             cv::RotatedRect inner_rect = cv::minAreaRect(contours[hierarcy[ind][2]]);
             cv::ellipse(this->RGBim,inner_rect,cv::Scalar(0,0,255),3);
@@ -173,7 +174,7 @@ void BigbufDetection::locate_target(cv::Mat &im) {
             target.f_time = clock();
             target.armor_points = armor_points;
             record_info(target);
-            return;
+            return true;
         }
     }
 }
@@ -194,7 +195,9 @@ void BigbufDetection::feed_im(cv::Mat& input_image) {
 
     filte_image(this->image);
 
-    locate_target(this->image);
+    if(locate_target(this->image)){
+        make_prediction();
+    }
 
 }
 
@@ -204,7 +207,7 @@ void BigbufDetection::getTest_result() {
         SHOW_IM("Test result",this->image);
 }
 
-void BigbufDetection::make_prediction(serial_port sp) {
+void BigbufDetection::make_prediction() {
     cv::Mat rvec,tvec;
     cv::Point3f target_3d;
     std::vector<cv::Point2f> armor_points = this->frames[0].armor_points;
@@ -224,5 +227,5 @@ void BigbufDetection::make_prediction(serial_port sp) {
     data.rawData[4] = yaw;
     data.rawData[5] = yaw >> 8;
 
-    sp.send_data(data);
+    this->SP.send_data(data);
 }

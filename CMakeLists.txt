@@ -28,7 +28,7 @@ add_executable(RobotBase
         RobotBase/vision/cam/Daheng.cpp
         RobotBase/vision/cam/Daheng.cpp
         RobotBase/Robogrinder_SDK/serial_port.cpp
-        )
+        RobotBase/vision/bigbuff/pred_algrsm.cpp RobotBase/vision/bigbuff/pred_algrsm.h)
 link_directories(../)
 target_link_libraries(RobotBase gxiapi)
 target_link_libraries(RobotBase glog)
