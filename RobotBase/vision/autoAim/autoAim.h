@@ -10,10 +10,12 @@
 #include <roboBase/RobotBase/Robogrinder_SDK/serial_port.h>
 #include "../control.h"
 #include "armor.h"
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
 
 struct _OtherParam {
-    uint8_t color = 0; //the self car color，0 blue，1 red
-    uint8_t mode = 0;
+    uint8_t color = UNKNOWN; //the self car color，0 blue，1 red
+    uint8_t mode = AUTOAIM;
     uint8_t level = 0;
     uint8_t id = 0;
 };
@@ -24,6 +26,15 @@ class ArmorDetector {
 public:
     ArmorDetector() {
         t_start_ = cv::getTickCount();
+        /** get configurations from json file*/
+        FILE *fp = fopen("config.json","r");
+        char json_buffer[200];
+        rapidjson::FileReadStream json(fp,json_buffer,sizeof(json_buffer));
+        rapidjson::Document d;
+        d.ParseStream(json);
+        fclose(fp);
+        this->OFFSET_PITCH = d["PITCH_OFFSET"].GetInt();
+        this->OFFSET_YAW = d["YAW_OFFSET"].GetInt();
     }
 
     ~ArmorDetector() = default;
@@ -37,11 +48,9 @@ public:
     int gray_th_ = 24;
     int OFFSET_INT_YAW = 1800;
     int OFFSET_INT_PITCH = 1800;
-    // infintry
-//    int OFFSET_YAW = 119;
-//    int OFFSET_PITCH = -39;
-    int OFFSET_YAW = 0;
-    int OFFSET_PITCH = 0;
+
+    int OFFSET_YAW;
+    int OFFSET_PITCH;
 private:
     bool makeRectSafe(cv::Rect &rect, const cv::Size &size) {
         if (rect.x < 0)
