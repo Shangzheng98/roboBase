@@ -4,6 +4,7 @@
 
 #include "vision_main.h"
 #include <roboBase/RobotBase/Robogrinder_SDK/serial_port.h>
+
 using namespace cv;
 
 void *vision_main_function() {
@@ -11,8 +12,9 @@ void *vision_main_function() {
     Daheng daheng;
     ArmorDetector armorDetector;
     OtherParam otherParam;
-    if (daheng.init() == 0)
-    {
+
+
+    if (daheng.init() == 0) {
         printf("fail to init lib\n");
         return nullptr;
     }
@@ -25,9 +27,9 @@ void *vision_main_function() {
     Mat color;
 
     while (1) {
-        otherParam.level = 0;//gimbal->level
-        otherParam.id =0;// gimbal->id;
-        otherParam.mode =0;// gimbal->current_mode;
+        otherParam.level = 0;
+        otherParam.id = 0;
+        otherParam.mode = 0;
 
         if (otherParam.id == 13) // blue 3
         {
@@ -38,14 +40,13 @@ void *vision_main_function() {
         daheng.getImage(color);
         //resize(color,color,Size(680,460));
         //imshow("a",color);
-        if (color.empty())
-        {
+        if (color.empty()) {
             printf("\nthe image is empty, please check camera!\n");
 
             break;
         }
-        auto time0 = static_cast<double>(getTickCount());
-        armorDetector.armorTask(color,otherParam,sp);
+        //auto time0 = static_cast<double>(getTickCount());
+        armorDetector.armorTask(color, otherParam, sp);
         //time0 = ((double) getTickCount() - time0) / getTickFrequency();
         //std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
         //bigbuff.feed_im(color);

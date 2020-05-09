@@ -5,10 +5,13 @@
 #ifndef ROBOTBASE_VISION_MAIN_H
 #define ROBOTBASE_VISION_MAIN_H
 
+#include <opencv2/opencv.hpp>
+
 #include "autoAim/autoAim.h"
 #include "bigbuff/BigbuffDetection.h"
-#include <opencv2/opencv.hpp>
 #include "cam/Daheng.h"
+
+
 void* vision_main_function();
 
 #endif //ROBOTBASE_VISION_MAIN_H
