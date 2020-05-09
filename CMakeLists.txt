@@ -10,6 +10,7 @@ find_package(glog REQUIRED)
 find_package(OpenCV 4.1.0 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Threads)
+find_package(RapidJSON)
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(../)
 
@@ -40,7 +41,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 
-# depend on the platform
+# depend on the platclform
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     message(STATUS "The current platform is arm")
     SET(CMAKE_BUILD_TYPE Release)
