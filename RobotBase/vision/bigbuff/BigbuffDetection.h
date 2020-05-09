@@ -5,11 +5,10 @@
 #ifndef ROBOTBASE_BIGBUFFDETECTION_H
 #define ROBOTBASE_BIGBUFFDETECTION_H
 #include "opencv2/opencv.hpp"
-#include <time.h>
+#include <ctime>
 #include <roboBase/RobotBase/Robogrinder_SDK/serial_port.h>
 #include <roboBase/RobotBase/Robogrinder_SDK/message.h>
 #include "pred_algrsm.h"
-
 #define DEBUG 1
 #if DEBUG
 #define DISP(a) std::cout<<a<<std::endl
