@@ -64,5 +64,12 @@ sudo make install
 #source ~/.bashrc
 echo "** Install opencv-4.1.1 successfully"
 
-
+git clone https://github.com/Tencent/rapidjson.git
+cd rapidjson/
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+echo "** Install rapidjson successfully"
 echo "** Bye :)"
