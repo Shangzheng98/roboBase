@@ -4,17 +4,14 @@
 
 #ifndef ROBOTBASE_PRED_ALGRSM_H
 #define ROBOTBASE_PRED_ALGRSM_H
-#include <math.h>
+#include <cmath>
 #include <iostream>
 using namespace std;
-#define r 1.225
 #define Cd 0.47
 #define A 0.001
-#define g 9.8
-#define m 0.039/9.0
-#define Vt sqrt((2*m*g)/(Cd*r*A))
+#define grivity 9.8
+#define V_t sqrt((2*0.039/9.0*grivity)/(Cd*1.225*A))
 #define PI 3.14159
-
 
 
 class pred_algrsm {
