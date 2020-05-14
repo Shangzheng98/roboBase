@@ -6,8 +6,8 @@
 #define ROBOTBASE_DAHENG_H
 
 #include <opencv2/opencv.hpp>
-#include "../../GxIAPI.h"
-#include "../../DxImageProc.h"
+#include "GxIAPI.h"
+#include "DxImageProc.h"
 
 using namespace cv;
 using namespace std;

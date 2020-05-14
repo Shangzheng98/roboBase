@@ -1,4 +1,16 @@
 {
+  "CUDA_ENABLE": false,
+  "DEBUG_MODE": false,
+
   "YAW_OFFSET": 10000,
-  "PITCH_OFFSET": 10000
+  "PITCH_OFFSET": 10000,
+
+  "ROI_ENABLE": true,
+  "SHOW_BINARY": false,
+  "SHOW_LIGHT_CONTOURS": false,
+  "SHOW_ROI": false,
+  "SHOW_DRAW_SPOT": false,
+  "SHOW_LAST_TARGET": false,
+  "SHOW_FINAL_ARMOR": false
+
 }

@@ -20,12 +20,12 @@ public:
     void send_data(const struct serial_gimbal_data &data);
     void restart_serial_port();
 
-    bool success_;
-    int fd;
-    int last_fd;
+    bool success_{};
+    int fd{};
+    int last_fd{};
 private:
-    int buadrate_;
-    char* serial_name_;
+    int buadrate_{};
+    char* serial_name_{};
 
 };
 

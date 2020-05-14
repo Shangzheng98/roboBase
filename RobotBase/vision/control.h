@@ -15,13 +15,7 @@
 #define SHOW_DRAW_SPOT 0
 #define SHOW_LAST_TARGET 0
 
-typedef enum color {
-    BLUE, RED, UNKNOWN
-} Robot_color;
 
-typedef enum mode{
-    BIGBUFF, AUTOAIM, IDLE
-};
 
 
 #endif //ROBOTBASE_CONTROL_H

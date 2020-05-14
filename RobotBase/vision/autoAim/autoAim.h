@@ -12,7 +12,13 @@
 #include "armor.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
+typedef enum color {
+    BLUE, RED, UNKNOWN
+} Robot_color;
 
+typedef enum mode{
+    BIGBUFF, AUTOAIM, IDLE
+} mode;
 struct _OtherParam {
     uint8_t color = UNKNOWN; //the self car color，0 blue，1 red
     uint8_t mode = AUTOAIM;
@@ -28,7 +34,7 @@ public:
         t_start_ = cv::getTickCount();
         /** get configurations from json file*/
         FILE *fp = fopen("config.json","r");
-        char json_buffer[200];
+        char json_buffer[1000];
         rapidjson::FileReadStream json(fp,json_buffer,sizeof(json_buffer));
         rapidjson::Document d;
         d.ParseStream(json);

@@ -9,7 +9,7 @@ Daheng::Daheng() {
     this->src.create(Size(640, 480), CV_8UC3);
     stOpenParam.accessMode = GX_ACCESS_EXCLUSIVE;
     stOpenParam.openMode = GX_OPEN_INDEX;
-    stOpenParam.pszContent = "1";
+    stOpenParam.pszContent = (char*)"1";
     this->nFrameNum = 0;
 
 }
@@ -33,6 +33,7 @@ int Daheng::init() {
 
     if (status != GX_STATUS_SUCCESS || nDeviceNum == NULL) {
         printf("cannot find the device!!!!!!!!!!\n");
+        return 0;
     }
     status = GXOpenDevice(&stOpenParam, &hDevice);
     //std::cout << status << "success" << std::endl;
@@ -46,7 +47,10 @@ int Daheng::init() {
 
             //根据获取的图像buffer大小m_nPayLoadSize申请buffer
             stFrameData.pImgBuf = malloc((size_t) nPayLoadSize);
-
+            int64_t nWidth= 640;
+            int64_t nHeight= 480;
+            status = status = GXSetInt(hDevice, GX_INT_WIDTH, nWidth);
+            status = GXSetInt(hDevice, GX_INT_HEIGHT, nHeight);
             // 设置曝光值
             status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME, 1500);
 
@@ -87,7 +91,6 @@ void Daheng::getImage(Mat &img) {
 
         //对图像进行处理...
         delete[]m_rgb_image;
-        //                        }
     }
 }
 

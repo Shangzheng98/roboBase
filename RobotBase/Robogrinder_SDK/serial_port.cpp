@@ -5,7 +5,7 @@
 #include <iostream>
 #include "serial_port.h"
 
-serial_port::serial_port() {}
+serial_port::serial_port() = default;
 
 serial_port::serial_port(char *serial_name, int buadrate) {
     serial_name_ = serial_name;
