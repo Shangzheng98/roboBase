@@ -5,7 +5,7 @@
 #include "BigbuffDetection.h"
 
 
-BigbufDetection::BigbufDetection(int cols, int rows,serial_port &sp){
+BigbufDetector::BigbufDetector(int cols, int rows,serial_port sp){
     this->IMAGE_COLS = cols;
     this->IMAGE_ROWS = rows;
     this->SP = sp;
@@ -36,7 +36,7 @@ BigbufDetection::BigbufDetection(int cols, int rows,serial_port &sp){
     cv::createTrackbar("offset_PITCH","offset",&this->OFFSET_PITCH,3600);
 }
 
-void BigbufDetection::refresh_frames() {
+void BigbufDetector::refresh_frames() {
 
     // clear the memory
     if(this->frames.size() > 3){
@@ -51,7 +51,7 @@ void BigbufDetection::refresh_frames() {
     ///// TO DO: refresh when angle between two frames are too large.
 }
 
-void BigbufDetection::filte_image(cv::Mat &im) {
+void BigbufDetector::filte_image(cv::Mat &im) {
 
     cv::Mat binary_brightness_img, binary_color_img, gray;
     cv::Mat ref_im;
@@ -81,10 +81,10 @@ void BigbufDetection::filte_image(cv::Mat &im) {
 }
 
 
-void BigbufDetection::drawContour_Rec(cv::RotatedRect rect, cv::Mat &src) {
+void BigbufDetector::drawContour_Rec(cv::RotatedRect rect, cv::Mat &src) {
 
-    cv::Point2f *vertices = new cv::Point2f[4];
-
+    //cv::Point2f *vertices = new cv::Point2f[4];
+    cv::Point2f vertices[4];
     rect.points(vertices);
 
     for (int j = 0; j < 4; j++)
@@ -92,7 +92,7 @@ void BigbufDetection::drawContour_Rec(cv::RotatedRect rect, cv::Mat &src) {
 
 }
 
-bool  BigbufDetection::contour_valid(std::vector<cv::Point>& contour){
+bool  BigbufDetector::contour_valid(std::vector<cv::Point>& contour){
     ///// TO DO: find suitable threshold for area
     float area = cv::contourArea(contour);
     if(area<1000)
@@ -123,7 +123,7 @@ bool  BigbufDetection::contour_valid(std::vector<cv::Point>& contour){
 
 
 
-bool BigbufDetection::locate_target(cv::Mat &im) {
+bool BigbufDetector::locate_target(cv::Mat &im) {
 
 
     std::vector<std::vector<cv::Point>> contours;
@@ -179,13 +179,13 @@ bool BigbufDetection::locate_target(cv::Mat &im) {
     }
 }
 
-void BigbufDetection::record_info(frame_info frameInfo) {
+void BigbufDetector::record_info(frame_info frameInfo) {
 
     this->frames.insert(frames.begin(), frameInfo);
     refresh_frames();
 }
 
-void BigbufDetection::feed_im(cv::Mat& input_image) {
+void BigbufDetector::feed_im(cv::Mat& input_image) {
 
     // check
 //    if(  input_image.cols != this->IMAGE_COLS || input_image.rows != this->IMAGE_ROWS)
@@ -201,13 +201,13 @@ void BigbufDetection::feed_im(cv::Mat& input_image) {
 
 }
 
-void BigbufDetection::getTest_result() {
+void BigbufDetector::getTest_result() {
 
     if(!this->image.rows==0)
         SHOW_IM("Test result",this->image);
 }
 
-void BigbufDetection::make_prediction() {
+void BigbufDetector::make_prediction() {
     cv::Mat rvec,tvec;
     cv::Point3f target_3d;
     std::vector<cv::Point2f> armor_points = this->frames[0].armor_points;
@@ -228,4 +228,8 @@ void BigbufDetection::make_prediction() {
     data.rawData[5] = yaw >> 8;
 
     this->SP.send_data(data);
+}
+
+BigbufDetector::~BigbufDetector() {
+
 }

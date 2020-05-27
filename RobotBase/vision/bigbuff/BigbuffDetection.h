@@ -32,7 +32,24 @@ struct frame_info{
 
 //////////////////////////////////////////////////
 
-class BigbufDetection {
+class BigbufDetector {
+
+public:
+
+    int OFFSET_YAW = 3600;
+    int OFFSET_PITCH = 3600;
+    // constructor: information about camera
+    BigbufDetector(int cols, int rows,serial_port sp);
+    ~BigbufDetector();
+    void feed_im(cv::Mat& input_image);
+
+    void getTest_result();
+
+    void make_prediction();
+
+public:
+    int color_th_ = 130;//131
+    int gray_th_ = 25;//24
 
 
 private:
@@ -71,22 +88,7 @@ private:
     void drawContour_Rec(cv::RotatedRect rect, cv::Mat &src);
 
 
-public:
 
-    int OFFSET_YAW = 3600;
-    int OFFSET_PITCH = 3600;
-    // constructor: information about camera
-    BigbufDetection(int cols, int rows,serial_port &sp);
-
-    void feed_im(cv::Mat& input_image);
-
-    void getTest_result();
-
-    void make_prediction();
-
-public:
-    int color_th_ = 130;//131
-    int gray_th_ = 25;//24
 };
 
 

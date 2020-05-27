@@ -7,8 +7,8 @@ project(RobotBase)
 
 # the libraries we used in the code
 find_package(glog REQUIRED)
-find_package(OpenCV 4.1.0 REQUIRED)
-find_package(Boost REQUIRED)
+find_package(OpenCV 4.1.0 REQUIRED )
+find_package(Boost REQUIRED COMPONENTS system)
 find_package(Threads)
 find_package(RapidJSON)
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -17,8 +17,6 @@ include_directories(../)
 add_executable(RobotBase
         RobotBase/main.cpp
         RobotBase/vision/bigbuff/BigbuffDetection.cpp
-        RobotBase/vision/vision_main.cpp
-        RobotBase/vision/vision_main.h
         RobotBase/vision/autoAim/autoAim.h
         RobotBase/vision/autoAim/autoAim.cpp
         RobotBase/vision/autoAim/armor.cpp
@@ -29,7 +27,12 @@ add_executable(RobotBase
         RobotBase/vision/cam/Daheng.cpp
         RobotBase/vision/cam/Daheng.cpp
         RobotBase/Robogrinder_SDK/serial_port.cpp
-        RobotBase/vision/bigbuff/pred_algrsm.cpp RobotBase/vision/bigbuff/pred_algrsm.h)
+        RobotBase/Robogrinder_SDK/serial_port.h
+        RobotBase/vision/bigbuff/pred_algrsm.cpp
+        RobotBase/vision/bigbuff/pred_algrsm.h
+        RobotBase/common.h
+        RobotBase/ThreadManagement/Thread_management.cpp
+        RobotBase/ThreadManagement/Thread_management.h)
 link_directories(../)
 target_link_libraries(RobotBase gxiapi)
 target_link_libraries(RobotBase glog)

@@ -1,26 +1,27 @@
 ﻿
 #include <thread>
 #include <cstdio>
-#include "vision/vision_main.h"
-
-
-// global variable
-char SERIAL_PORT[20] = "/dev/serial_sdk";
-#define CONNECT_TO_SERIAL 0
-
-using namespace cv;
+#include "ThreadPool/Thread_management.h"
+//using namespace cv;
 int main(int argc, char *argv[]) {
 
-#if CONNECT_TO_SERIAL
-#else
-    //gimbal = new Gimbal(nullptr);
-#endif
+    auto *management = new ThreadManagement();
+    auto time0 = static_cast<double>(getTickCount());
+    std::thread image_produce(&ThreadManagement::ImageProduce,management);
+    std::thread autoAim(&ThreadManagement::AutoAim,management);
+    time0 = ((double) getTickCount() - time0) / getTickFrequency();
+    cout << "input " << management->inputcounter <<endl;
+    cout << "output" << management->outputcounter <<endl;
+    std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
+    //std::thread bigbuff(&ThreadManagement::Bigbuff,management);
 
-    // New thread for vision function
-    std::thread vision_main_thread = std::thread(vision_main_function);
-
-    //Keep accepting the message from development board, the main thread services SDk
-    vision_main_thread.join();
+    image_produce.join();
+    autoAim.join();
+    //bigbuff.join();
+    cout << "input " << management->inputcounter <<endl;
+    cout << "output" << management->outputcounter <<endl;
+    std::cout << "use time is " << time0 * 1000 << "ms" << std::endl;
+    delete management;
     return 0;
 }
 

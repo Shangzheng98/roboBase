@@ -22,7 +22,7 @@ struct serial_friction_data
     int size;
 };
 
-struct serical_recive_data
+struct serial_recive_data
 {
     char rawData[10];
     int head = 0xaf;

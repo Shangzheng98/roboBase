@@ -12,35 +12,21 @@
 #include "armor.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
-typedef enum color {
-    BLUE, RED, UNKNOWN
-} Robot_color;
-
-typedef enum mode{
-    BIGBUFF, AUTOAIM, IDLE
-} mode;
-struct _OtherParam {
-    uint8_t color = UNKNOWN; //the self car color，0 blue，1 red
-    uint8_t mode = AUTOAIM;
-    uint8_t level = 0;
-    uint8_t id = 0;
-};
-typedef _OtherParam OtherParam;
-
+#include "../../common.h"
 
 class ArmorDetector {
 public:
     ArmorDetector() {
         t_start_ = cv::getTickCount();
         /** get configurations from json file*/
-        FILE *fp = fopen("config.json","r");
-        char json_buffer[1000];
-        rapidjson::FileReadStream json(fp,json_buffer,sizeof(json_buffer));
-        rapidjson::Document d;
-        d.ParseStream(json);
-        fclose(fp);
-        this->OFFSET_PITCH = d["PITCH_OFFSET"].GetInt();
-        this->OFFSET_YAW = d["YAW_OFFSET"].GetInt();
+//        FILE *fp = fopen("config.json","r");
+//        char json_buffer[1000];
+//        rapidjson::FileReadStream json(fp,json_buffer,sizeof(json_buffer));
+//        rapidjson::Document d;
+//        d.ParseStream(json);
+//        fclose(fp);
+//        this->OFFSET_PITCH = d["PITCH_OFFSET"].GetInt();
+//        this->OFFSET_YAW = d["YAW_OFFSET"].GetInt();
     }
 
     ~ArmorDetector() = default;
@@ -95,6 +81,7 @@ private:
     int yaw_array[3];
     int yaw_array_count = 0;
     int yaw_array_size = 1;
+
 };
 
 

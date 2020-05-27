@@ -62,7 +62,7 @@ serial_port::serial_port(char *serial_name, int buadrate) {
 void serial_port::send_data(const struct serial_gimbal_data &data) {
     int re = write(fd, data.rawData, data.size);
     if (data.size != re) {
-        std::cout << "!!! send data failure !!!" << fd << std::endl;
+        //std::cout << "!!! send data failure !!!" << fd << std::endl;
     }
 }
 
@@ -70,4 +70,11 @@ void serial_port::send_data(const struct serial_gimbal_data &data) {
 void serial_port::restart_serial_port() {
 
 }
+
+void serial_port::recive_data(OtherParam *param) {
+    tcflush(fd, TCIFLUSH);
+    uint8_t buffer[10];
+    struct serial_recive_data;
+}
+
 

@@ -5,7 +5,6 @@
 
 #include "autoAim.h"
 
-
 using namespace cv;
 using namespace std;
 
@@ -50,24 +49,22 @@ cv::Rect ArmorDetector::GetRoi(const cv::Mat &img) {
 bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     Mat roi_image = img(roi);
     Point2f offset_roi_point(roi.x, roi.y);
-    vector<LED_bar> LED_bars;
-    Mat binary_brightness_img, binary_color_img, gray, debug_img;
-    debug_img = img.clone();
-    cvtColor(roi_image, gray, COLOR_BGR2GRAY);
-//    Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
-//    dilate(roi_image, roi_image, element);
     vector<Mat> BGR_channels;
+    vector<LED_bar> LED_bars;
+    Mat binary_brightness_img, binary_color_img, gray, debug_img,color_result_img;;
+    debug_img = img.clone();
+
+    cvtColor(roi_image, gray, COLOR_BGR2GRAY);
     split(roi_image, BGR_channels);
-    Mat color_result_img;
     if (color_ == 0) // opposite red
     {
         subtract(BGR_channels[2], BGR_channels[1], color_result_img);
     } else {
         subtract(BGR_channels[0], BGR_channels[2], color_result_img);
     }
-
     threshold(gray, binary_brightness_img, gray_th_, 255, THRESH_BINARY);
     threshold(color_result_img, binary_color_img, color_th_, 255, THRESH_BINARY);
+
 #if SHOW_BINART
     imshow("binary_brightness_img", binary_brightness_img);
     imshow("binary_color_img", binary_color_img);
@@ -76,6 +73,13 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     vector<vector<Point> > contours_brightness;
     findContours(binary_color_img, contours_light, RETR_EXTERNAL, CHAIN_APPROX_NONE);
     findContours(binary_brightness_img, contours_brightness, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+    //printf("%zu\n",contours_light.size());
+    //printf("%zu\n",contours_brightness.size());
+    if (contours_brightness.size() <2|| contours_light.size() <2||contours_brightness.size()>10||contours_light.size()>10)
+    {
+        waitKey(1);
+        return false;
+    }
 
     for (unsigned int i = 0; i < contours_brightness.size(); i++) {
         double area = contourArea(contours_brightness[i]);
@@ -232,6 +236,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     detect_count++;
 
     imshow("debug_img", debug_img);
+    waitKey(1);
     return found_flag;
 }
 
@@ -329,7 +334,7 @@ int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port
 
         sp.send_data(data);
     } else {
-        printf("not detected\n");
+        //printf("not detected\n");
         int pitch = 0;
         //int pitch = 15000;
         int yaw = 0;

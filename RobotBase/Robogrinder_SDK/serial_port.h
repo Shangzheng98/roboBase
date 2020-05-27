@@ -11,15 +11,17 @@
 #include <fcntl.h>
 #include <cstdlib>
 #include <cstdio>
+
+#include "../common.h"
 class serial_port {
 public:
     serial_port();
     serial_port(char* serial_name, int buadrate);
-
+    ~serial_port() = default;
     //struct serial_gimbal_data pack_gimbal_data(const struct gimbal_msg &data);
     void send_data(const struct serial_gimbal_data &data);
     void restart_serial_port();
-
+    void recive_data(OtherParam *param);
     bool success_{};
     int fd{};
     int last_fd{};
