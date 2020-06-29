@@ -11,10 +11,7 @@ BigbufDetector::BigbufDetector(int cols, int rows,serial_port sp){
     this->SP = sp;
 
     /// solvepnp Data
-    float x, y, z, width = 0.0f, height = 0.0f;
-    width = 140;
-    height = 60;
-
+    float x, y, z, width = 140.0f, height = 60.0f;
 
     x = -width / 2;
     y = height / 2;
@@ -48,7 +45,7 @@ void BigbufDetector::refresh_frames() {
     if(this->frames.size()>2 && (this->frames[0].f_time-this->frames[1].f_time) > 0.1 ){
         frames.erase(frames.begin()+1,frames.end());
     }
-    ///// TO DO: refresh when angle between two frames are too large.
+    ////TO DO: refresh when angle between two frames are too large.
 }
 
 void BigbufDetector::filte_image(cv::Mat &im) {
@@ -60,7 +57,7 @@ void BigbufDetector::filte_image(cv::Mat &im) {
     std::vector<cv::Mat> BGR_channels;
     split(im, BGR_channels);
     ///test:
-    SHOW_IM("Color",im);
+    //SHOW_IM("Color",im);
     this->RGBim = im;
     if (this->color_ == 0) // opposite red
     {
@@ -71,8 +68,8 @@ void BigbufDetector::filte_image(cv::Mat &im) {
     threshold(gray, binary_brightness_img, gray_th_, 255, cv::THRESH_BINARY);
     threshold(result_img, binary_color_img, color_th_, 255, cv::THRESH_BINARY);
     ///test:
-    SHOW_IM("binary_brightness_img", binary_brightness_img);
-    SHOW_IM("binary_color_img", binary_color_img);
+    //SHOW_IM("binary_brightness_img", binary_brightness_img);
+    //SHOW_IM("binary_color_img", binary_color_img);
     im = binary_color_img & binary_brightness_img;
 
     cv::dilate(im,im,getStructuringElement(0, cv::Size(5, 5)));
@@ -195,10 +192,11 @@ void BigbufDetector::feed_im(cv::Mat& input_image) {
 
     filte_image(this->image);
 
-    if(locate_target(this->image)){
+    if(locate_target(this->image)&& this->frames.size() >=3){
         make_prediction();
     }
-
+    cv::imshow("bigbuff",this->image);
+    cv::waitKey(1);
 }
 
 void BigbufDetector::getTest_result() {

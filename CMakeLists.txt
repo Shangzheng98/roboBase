@@ -39,6 +39,7 @@ target_link_libraries(RobotBase glog)
 target_link_libraries(RobotBase ${OpenCV_LIBS})
 target_link_libraries(RobotBase ${Boost_LIBRARIES})
 target_link_libraries (RobotBase ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(RobotBase ${CMAKE_THREAD_LIBS_INIT})
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")

@@ -51,6 +51,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     Point2f offset_roi_point(roi.x, roi.y);
     vector<Mat> BGR_channels;
     vector<LED_bar> LED_bars;
+    bool found_flag = false;
     Mat binary_brightness_img, binary_color_img, gray, debug_img,color_result_img;;
     debug_img = img.clone();
 
@@ -75,10 +76,14 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     findContours(binary_brightness_img, contours_brightness, RETR_EXTERNAL, CHAIN_APPROX_NONE);
     //printf("%zu\n",contours_light.size());
     //printf("%zu\n",contours_brightness.size());
+    /**
+     * still need to test
+     */
     if (contours_brightness.size() <2|| contours_light.size() <2||contours_brightness.size()>10||contours_light.size()>10)
     {
-        waitKey(1);
-        return false;
+        //imshow("debug_img", debug_img);
+        //waitKey(1);
+        return found_flag;
     }
 
     for (unsigned int i = 0; i < contours_brightness.size(); i++) {
@@ -162,7 +167,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
 //
 //
     float dist = 1e8;
-    bool found_flag = false;
+
     armor target;
     Point2f roi_center(roi.width / 2, roi.height / 2);
     float dx, dy;
@@ -262,6 +267,7 @@ int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port
         float x, y, z, width = 0.0f, height = 0.0f;
         if (is_small_) {
             width = 140;
+            height = 60;
             height = 60;
         } else {
             width = 230;
