@@ -27,8 +27,6 @@ public:
     void AutoAim();
 
     void Communication_thread();
-    int inputcounter =0;
-    int outputcounter = 0;
 
 private:
     void pause(char x);
@@ -38,8 +36,6 @@ private:
     const int SIZE_ = 30;
     boost::circular_buffer<cv::Mat> buffer;
     boost::mutex buffer_lock;
-    std:: mutex m_;
-    sem_t mode_signal;
     OtherParam otherParam;
     serial_port serialPort;
     Daheng *daheng;
@@ -49,7 +45,7 @@ private:
     std::condition_variable cond_buff;
     bool aim_ready = false;
     bool buff_ready = false;
-
+    ArmorDetector armorDetector;
 };
 
 #endif //ROBOTBASE_THREAD_MANAGEMENT_H

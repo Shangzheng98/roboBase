@@ -8,8 +8,6 @@ using namespace std;
 ThreadManagement::ThreadManagement() {
     cout << "THEAD START WORKING !!!" << endl;
     buffer.set_capacity(SIZE_);
-    //sem_init(&mode_signal,0,1);
-
     daheng = new Daheng();
     if (daheng->init() == 0) {
         printf("fail to init Daheng camera library\n");
@@ -41,7 +39,7 @@ void ThreadManagement::ImageProduce() {
 }
 
 void ThreadManagement::AutoAim() {
-    ArmorDetector armorDetector;
+
 
     while (1) {
         //auto time0 = static_cast<double>(getTickCount());
@@ -49,24 +47,22 @@ void ThreadManagement::AutoAim() {
         while(!aim_ready)
         {
             printf("aim wait\n");
-            sleep(1);
             std::unique_lock<std::mutex> lck_a(aim_mtx);
             cond_aim. wait(lck_a);
         }
         printf("aim work\n");
-        sleep(2);
-//        buffer_lock.lock();
-//        if (buffer.empty()) {
-//            buffer_lock.unlock();
-//            continue;
-//        }
-//
-//        Mat frame = buffer.front();
-//        buffer.pop_front();
-//        outputcounter++;
-//        buffer_lock.unlock();
-//        //auto time0 = static_cast<double>(getTickCount());
-//        armorDetector.armorTask(frame, otherParam, serialPort);
+
+        buffer_lock.lock();
+        if (buffer.empty()) {
+            buffer_lock.unlock();
+            continue;
+        }
+
+        Mat frame = buffer.front();
+        buffer.pop_front();
+        buffer_lock.unlock();
+        //auto time0 = static_cast<double>(getTickCount());
+        armorDetector.armorTask(frame, otherParam, serialPort);
 
         //time0 = ((double) getTickCount() - time0) / getTickFrequency();
         //cout << "use time is " << time0 * 1000 << "ms" << endl;
@@ -75,28 +71,28 @@ void ThreadManagement::AutoAim() {
 }
 
 void ThreadManagement::Bigbuff() {
-    BigbufDetector bigebufDetector(640, 480, serialPort);
+    BigbufDetector bigebufDetector(serialPort);
 
     while (1) {
 
         while(!buff_ready)
         {
             printf("buff wait\n");
-            sleep(1);
+            //sleep(1);
             std::unique_lock<std::mutex> lck_b(buff_mtx);
             cond_buff.wait(lck_b);
         }
         printf("buff work\n");
-        sleep(2);
-//        buffer_lock.lock();
-//        if (buffer.empty()) {
-//            buffer_lock.unlock();
-//            continue;
-//        }
-//        Mat frame = buffer.front();
-//        buffer.pop_front();
-//        buffer_lock.unlock();
-//        bigebufDetector.feed_im(frame);
+        //sleep(2);
+        buffer_lock.lock();
+        if (buffer.empty()) {
+            buffer_lock.unlock();
+            continue;
+        }
+        Mat frame = buffer.front();
+        buffer.pop_front();
+        buffer_lock.unlock();
+        bigebufDetector.feed_im(frame,otherParam);
         //bigebufDetector.getTest_result();
 
     }

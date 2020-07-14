@@ -16,24 +16,50 @@
 
 class ArmorDetector {
 public:
-    ArmorDetector() {
+    ArmorDetector(){
+        printf(" armor detector initing!\n");
         t_start_ = cv::getTickCount();
-        /** get configurations from json file*/
-//        FILE *fp = fopen("config.json","r");
-//        char json_buffer[1000];
-//        rapidjson::FileReadStream json(fp,json_buffer,sizeof(json_buffer));
-//        rapidjson::Document d;
-//        d.ParseStream(json);
-//        fclose(fp);
-//        this->OFFSET_PITCH = d["PITCH_OFFSET"].GetInt();
-//        this->OFFSET_YAW = d["YAW_OFFSET"].GetInt();
-    }
+        float x, y, z, small_width = 140, small_height = 60, big_width =230, big_height = 60;
+        x = -small_width / 2;
+        y = small_height / 2;
+        z = 0;
+        small_real_armor_points.emplace_back(x, y, z);
+        x = small_width / 2;
+        y = small_height / 2;
+        z = 0;
+        small_real_armor_points.emplace_back(x, y, z);
+        x = small_width / 2;
+        y = -small_height / 2;
+        z = 0;
+        small_real_armor_points.emplace_back(x, y, z);
+        x = -small_width / 2;
+        y = -small_height / 2;
+        z = 0;
+        small_real_armor_points.emplace_back(x, y, z);
 
+        //**********************************************************************//
+        x = -big_width / 2;
+        y = big_height / 2;
+        z = 0;
+        big_real_armor_points.emplace_back(x, y, z);
+        x = big_width / 2;
+        y = big_height / 2;
+        z = 0;
+        big_real_armor_points.emplace_back(x, y, z);
+        x = big_width / 2;
+        y = -big_height / 2;
+        z = 0;
+        big_real_armor_points.emplace_back(x, y, z);
+        x = -big_width / 2;
+        y = -big_height / 2;
+        z = 0;
+        big_real_armor_points.emplace_back(x, y, z);
+    }
     ~ArmorDetector() = default;
 
     int armorTask(cv::Mat &img, OtherParam other_param, serial_port sp);
 
-    bool DetectArmor(cv::Mat &img, cv::Rect roi);
+    bool DetectArmor(cv::Mat &img, const cv::Rect& roi);
 
 public:
     int color_th_ = 13;
@@ -70,7 +96,11 @@ private:
     uint8_t mode_{};
     uint8_t level_;
     std::vector<cv::Point2f> final_armor_2Dpoints;
-    cv::Mat cameraMatrix, distCoeffs;
+    cv::Mat cameraMatrix= (cv::Mat_<double>(3, 3) << 1293.5303221625442802, 0.3651215140945823, 355.9091806402759630,
+    0.0000000000000000, 1293.9256252855957428, 259.1868664367483461,
+    0.0000000000000000, 0.0000000000000000, 1.0000000000000000);;
+    cv::Mat distCoeffs = (cv::Mat_<double>(1, 5)
+            << -0.2126367859619807, 0.2282910064864265, 0.0020583387355406, 0.0006136511397638, -0.7559987171745171);;
 
 private:
     // 判断大小装甲板类型相关参数
@@ -82,6 +112,9 @@ private:
     int yaw_array_count = 0;
     int yaw_array_size = 1;
 
+
+    std::vector<cv::Point3f> small_real_armor_points;
+    std::vector<cv::Point3f> big_real_armor_points;
 };
 
 
