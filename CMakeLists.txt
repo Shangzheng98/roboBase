@@ -7,7 +7,7 @@ project(RobotBase)
 
 # the libraries we used in the code
 find_package(glog REQUIRED)
-find_package(OpenCV 4.1.0 REQUIRED )
+find_package(OpenCV 4.1.1 REQUIRED )
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Threads)
 find_package(RapidJSON)
