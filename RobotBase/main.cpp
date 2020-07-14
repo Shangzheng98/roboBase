@@ -6,11 +6,11 @@ int main(int argc, char *argv[]) {
 
     auto *management = new ThreadManagement();
 
-    //std::thread image_produce(&ThreadManagement::ImageProduce,management);
+    std::thread image_produce(&ThreadManagement::ImageProduce,management);
     std::thread autoAim(&ThreadManagement::AutoAim,management);
     std::thread bigbuff(&ThreadManagement::Bigbuff,management);
     std::thread comm(&ThreadManagement::Communication_thread,management);
-    //image_produce.join();
+    image_produce.join();
     autoAim.join();
     bigbuff.join();
     comm.join();

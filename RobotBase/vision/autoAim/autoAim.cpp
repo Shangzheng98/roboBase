@@ -8,10 +8,9 @@
 using namespace cv;
 using namespace std;
 
-double calc_distance(Point2f p1, Point2f p2) {
-    return pow(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2), 0.5);
-}
-
+//double calc_distance(Point2f p1, Point2f p2) {
+//    return pow(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2), 0.5);
+//}
 
 cv::Rect ArmorDetector::GetRoi(const cv::Mat &img) {
     Size img_size = img.size();
@@ -46,13 +45,13 @@ cv::Rect ArmorDetector::GetRoi(const cv::Mat &img) {
     return rect_roi;
 }
 
-bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
+bool ArmorDetector::DetectArmor(cv::Mat &img, const cv::Rect &roi) {
     Mat roi_image = img(roi);
     Point2f offset_roi_point(roi.x, roi.y);
     vector<Mat> BGR_channels;
     vector<LED_bar> LED_bars;
     bool found_flag = false;
-    Mat binary_brightness_img, binary_color_img, gray, debug_img,color_result_img;;
+    Mat binary_brightness_img, binary_color_img, gray, debug_img, color_result_img;;
     debug_img = img.clone();
 
     cvtColor(roi_image, gray, COLOR_BGR2GRAY);
@@ -79,8 +78,8 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
     /**
      * still need to test
      */
-    if (contours_brightness.size() <2|| contours_light.size() <2||contours_brightness.size()>10||contours_light.size()>10)
-    {
+    if (contours_brightness.size() < 2 || contours_light.size() < 2 || contours_brightness.size() > 10 ||
+        contours_light.size() > 10) {
         //imshow("debug_img", debug_img);
         //waitKey(1);
         return found_flag;
@@ -135,12 +134,11 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, cv::Rect roi) {
             }
         }
     }
-//    //==========================================possible armor=========================================
-    //printf("led bar number: %zu\n", LED_bars.size());
+    //==========================================possible armor=========================================
     for (size_t i = 0; i < LED_bars.size(); i++) {
         for (size_t j = i + 1; j < LED_bars.size(); j++) {
             armor temp_armor(LED_bars.at(i), LED_bars.at(j));
-            if (temp_armor .error_angle < 7.0f) {
+            if (temp_armor.error_angle < 7.0f) {
                 if (temp_armor.is_suitable_size()) {
                     //temp_armor.draw_rect(debug_img,offset_roi_point);
                     if (temp_armor.get_average_intensity(gray) < 70) {
@@ -259,49 +257,17 @@ int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port
     Point3f target_3d = {0, 0, 0};
     Mat rvec;
     Mat tvec;
-    OFFSET_YAW = (double) (OFFSET_INT_YAW - 1800);
-    OFFSET_PITCH = (double) (OFFSET_INT_PITCH - 1800);
+    OFFSET_YAW = (OFFSET_INT_YAW - 1800);
+    OFFSET_PITCH = (OFFSET_INT_PITCH - 1800);
     if (DetectArmor(color, roi)) {
         printf("detected\n");
-        vector<cv::Point3f> real_armor_points;
-        float x, y, z, width = 0.0f, height = 0.0f;
         if (is_small_) {
-            width = 140;
-            height = 60;
-            height = 60;
+            solvePnP(small_real_armor_points, final_armor_2Dpoints, cameraMatrix, distCoeffs, rvec, tvec, false,
+                     SOLVEPNP_ITERATIVE);
         } else {
-            width = 230;
-            height = 60;
+            solvePnP(big_real_armor_points, final_armor_2Dpoints, cameraMatrix, distCoeffs, rvec, tvec, false,
+                     SOLVEPNP_ITERATIVE);
         }
-
-        x = -width / 2;
-        y = height / 2;
-        z = 0;
-        real_armor_points.emplace_back(x, y, z);
-        x = width / 2;
-        y = height / 2;
-        z = 0;
-        real_armor_points.emplace_back(x, y, z);
-        x = width / 2;
-        y = -height / 2;
-        z = 0;
-        real_armor_points.emplace_back(x, y, z);
-        x = -width / 2;
-        y = -height / 2;
-        z = 0;
-        real_armor_points.emplace_back(x, y, z);
-        cameraMatrix = (Mat_<double>(3, 3) << 1293.5303221625442802, 0.3651215140945823, 355.9091806402759630,
-                0.0000000000000000, 1293.9256252855957428, 259.1868664367483461,
-                0.0000000000000000, 0.0000000000000000, 1.0000000000000000);
-
-        distCoeffs = (Mat_<double>(1, 5)
-                << -0.2126367859619807, 0.2282910064864265, 0.0020583387355406, 0.0006136511397638, -0.7559987171745171);
-//        if (final_armor_2Dpoints.size() != 4) {
-//            //printf("size: %zu\n", final_armor_2Dpoints.size());
-//            return 1;
-//        }
-
-        solvePnP(real_armor_points, final_armor_2Dpoints, cameraMatrix, distCoeffs, rvec, tvec, false, SOLVEPNP_ITERATIVE);
 
         target_3d = cv::Point3f(tvec);
         printf("x:%f y:%f z:%f\n", target_3d.x, target_3d.y, target_3d.z);
@@ -309,7 +275,7 @@ int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port
 
         int pitch = int((atan2(target_3d.y - 80, target_3d.z) + (float) (OFFSET_PITCH * CV_PI / 1800)) * 0.6 * 10000);
         //int pitch = 15000;
-        int yaw = int((-atan2(target_3d.x, target_3d.z) + (float) (OFFSET_YAW * CV_PI / 1800))*0.4 * 10000);
+        int yaw = int((-atan2(target_3d.x, target_3d.z) + (float) (OFFSET_YAW * CV_PI / 1800)) * 0.4 * 10000);
         //int yaw = -15000;
         //printf("yaw: %d, pitch: %d\n", yaw, pitch);
         //pitch_vector.push_back((float)pitch/10000);
@@ -358,3 +324,5 @@ int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port
     }
 
 }
+
+

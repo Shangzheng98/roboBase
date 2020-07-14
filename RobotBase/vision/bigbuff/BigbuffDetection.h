@@ -32,7 +32,6 @@ struct frame_info {
 };
 
 
-//////////////////////////////////////////////////
 
 class BigbufDetector {
 
@@ -42,11 +41,11 @@ public:
     int OFFSET_PITCH = 3600;
 
     // constructor: information about camera
-    BigbufDetector(int cols, int rows, serial_port sp);
+    BigbufDetector( serial_port sp);
 
-    ~BigbufDetector();
+    ~BigbufDetector ()= default;
 
-    void feed_im(cv::Mat &input_image);
+    void feed_im(cv::Mat &input_image,OtherParam othter_param);
 
     void getTest_result();
 
@@ -58,13 +57,15 @@ public:
 
 
 private:
-    int IMAGE_COLS;
-    int IMAGE_ROWS;
+    float x, y, z, width = 140.0f, height = 60.0f;
+
+    int IMAGE_COLS = 480;
+    int IMAGE_ROWS = 640;
     cv::Mat image;
     cv::Mat RGBim;
-    serial_port SP;
     int sample_num = 0;
-    uint8_t color_ = 1;
+    serial_port sp;
+    OtherParam otherParam;
     clock_t t_ms = clock();
     std::vector<cv::Point3f> real_armor_points;
     const int THR_R_min = 32, THR_G_min = 43, THR_B_min = 22, THR_R_max = 255, THR_G_max = 255, THR_B_max = 255;
@@ -82,7 +83,7 @@ private:
 
     void refresh_frames();
 
-    void filte_image(cv::Mat &im);
+    void filte_image(cv::Mat &im, uint8_t color);
 
     bool locate_target(cv::Mat &im);
 
