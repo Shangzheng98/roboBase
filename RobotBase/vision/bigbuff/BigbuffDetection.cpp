@@ -28,38 +28,23 @@ BigbufDetector::BigbufDetector( serial_port sp) {
     cv::createTrackbar("offset_PITCH", "offset", &this->OFFSET_PITCH, 3600);
 }
 
-void BigbufDetector::refresh_frames() {
-
-    // clear the memory
-    if (this->frames.size() > 3) {
-        frames.erase(frames.end());
-    }
-
-    // if the time interval between first two consecutive frames is to large
-    // then erase all except for the first one.
-    if (this->frames.size() > 2 && (this->frames[0].f_time - this->frames[1].f_time) > 0.1) {
-        frames.erase(frames.begin() + 1, frames.end());
-    }
-    ////TO DO: refresh when angle between two frames are too large.
-}
 
 void BigbufDetector::filte_image(cv::Mat &im,uint8_t color) {
-
-    cv::Mat binary_brightness_img, binary_color_img, gray;
-    cv::Mat ref_im;
+    cv::Mat gray;
     cvtColor(im, gray, cv::COLOR_BGR2GRAY);
-    cv::Mat result_img;
+
     std::vector<cv::Mat> BGR_channels;
     split(im, BGR_channels);
-    ///test:
-    //SHOW_IM("Color",im);
+
     this->RGBim = im;
+    cv::Mat result_img;
     if (color == 0) // opposite red
     {
         subtract(BGR_channels[2], BGR_channels[1], result_img);
     } else {
         subtract(BGR_channels[0], BGR_channels[2], result_img);
     }
+    cv::Mat binary_brightness_img, binary_color_img;
     threshold(gray, binary_brightness_img, gray_th_, 255, cv::THRESH_BINARY);
     threshold(result_img, binary_color_img, color_th_, 255, cv::THRESH_BINARY);
     ///test:
@@ -106,9 +91,6 @@ bool BigbufDetector::contour_valid(std::vector<cv::Point> &contour) {
 
     ///test:
     drawContour_Rec(rect, image);
-    //DISP(this->sample_num<< "   "<<l_ratio << "   "<<a_ratio);
-    sample_num++;
-    ////
 
     return true;
 }
@@ -121,7 +103,7 @@ bool BigbufDetector::locate_target(cv::Mat &im) {
     std::vector<cv::Vec4i> hierarcy;
 
     cv::findContours(im, contours, hierarcy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
-    frame_info target;
+
 
     for (int ind = 0; ind < contours.size(); ind++) {
         if (contour_valid(contours[ind])) {
@@ -151,6 +133,7 @@ bool BigbufDetector::locate_target(cv::Mat &im) {
                 std::cout << "None" << std::endl;
                 return false;
             }
+
             cv::RotatedRect inner_rect = cv::minAreaRect(contours[hierarcy[ind][2]]);
             cv::ellipse(this->RGBim, inner_rect, cv::Scalar(0, 0, 255), 3);
             SHOW_IM("RGB", this->RGBim);
@@ -159,22 +142,19 @@ bool BigbufDetector::locate_target(cv::Mat &im) {
             std::vector<cv::Point2f> armor_points;
             for (int n = 0; n < 4; n++) armor_points.push_back(rect_points[n]);
 
-
+            // ** record the info of the target at the moment ** //
+            frame_info target;
             target.center = c_R;
             target.angular_vector = a_vector;
             target.f_time = clock();
             target.armor_points = armor_points;
-            record_info(target);
             return true;
         }
     }
+    return false;
 }
 
-void BigbufDetector::record_info(frame_info frameInfo) {
 
-    this->frames.insert(frames.begin(), frameInfo);
-    refresh_frames();
-}
 
 void BigbufDetector::feed_im(cv::Mat &input_image,OtherParam othter_param) {
 
@@ -186,24 +166,21 @@ void BigbufDetector::feed_im(cv::Mat &input_image,OtherParam othter_param) {
     this->otherParam = othter_param;
     filte_image(this->image, otherParam.color);
 
-    if (locate_target(this->image) && this->frames.size() >= 3) {
-        make_prediction();
-    }
+    if (! locate_target(this->image) || ! this->frame_buffer.full())
+        return;
+
+    make_prediction();
+
     cv::imshow("bigbuff", this->image);
     cv::waitKey(1);
 }
 
-void BigbufDetector::getTest_result() {
-
-    if (!this->image.rows == 0)
-        SHOW_IM("Test result", this->image);
-}
 
 void BigbufDetector::make_prediction() {
+    std::vector<cv::Point2f> armor_points = this->frame_buffer[0].armor_points;
     cv::Mat rvec, tvec;
-    cv::Point3f target_3d;
-    std::vector<cv::Point2f> armor_points = this->frames[0].armor_points;
     cv::solvePnP(this->real_armor_points, armor_points, cameraMatrix, distCoeffs, rvec, tvec);
+    cv::Point3f target_3d;
     target_3d = cv::Point3f(tvec);
     int pitch = int((atan2(target_3d.y - 80, target_3d.z) + (float) (OFFSET_PITCH * CV_PI / 1800)) * 0.6 * 10000);
     int yaw = int((-atan2(target_3d.x, target_3d.z) + (float) (OFFSET_PITCH * CV_PI / 1800)) * 0.6 * 10000);

@@ -10,8 +10,8 @@
 #include <roboBase/RobotBase/Robogrinder_SDK/serial_port.h>
 #include "../control.h"
 #include "armor.h"
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
+//#include "rapidjson/document.h"
+//#include "rapidjson/filereadstream.h"
 #include "../../common.h"
 
 class ArmorDetector {

@@ -71,10 +71,15 @@ void serial_port::restart_serial_port() {
 
 }
 
-void serial_port::recive_data(OtherParam *param) {
+void serial_port::recive_data(struct serial_recive_data &receiveData) {
     tcflush(fd, TCIFLUSH);
     uint8_t buffer[10];
-    struct serial_recive_data;
+    int re = read(fd,receiveData.rawData, receiveData.size);
+    if (receiveData.size != re){
+        std::cout<< "!!! receive data failure !!!"<< std::endl;
+    }
+    // decode the data received //
+
 }
 
 

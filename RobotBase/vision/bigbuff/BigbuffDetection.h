@@ -9,6 +9,7 @@
 #include <ctime>
 #include <roboBase/RobotBase/Robogrinder_SDK/serial_port.h>
 #include <roboBase/RobotBase/Robogrinder_SDK/message.h>
+#include <boost/circular_buffer.hpp>
 #include "pred_algrsm.h"
 
 #define DEBUG 1
@@ -47,8 +48,6 @@ public:
 
     void feed_im(cv::Mat &input_image,OtherParam othter_param);
 
-    void getTest_result();
-
     void make_prediction();
 
 public:
@@ -59,13 +58,11 @@ public:
 private:
     float x, y, z, width = 140.0f, height = 60.0f;
 
-    int IMAGE_COLS = 480;
-    int IMAGE_ROWS = 640;
     cv::Mat image;
     cv::Mat RGBim;
-    int sample_num = 0;
-    serial_port sp;
+
     OtherParam otherParam;
+
     clock_t t_ms = clock();
     std::vector<cv::Point3f> real_armor_points;
     const int THR_R_min = 32, THR_G_min = 43, THR_B_min = 22, THR_R_max = 255, THR_G_max = 255, THR_B_max = 255;
@@ -78,21 +75,18 @@ private:
     cv::Mat distCoeffs = (cv::Mat_<double>(1, 5)
             << -0.2126367859619807, 0.2282910064864265, 0.0020583387355406, 0.0006136511397638, -0.7559987171745171);
 
-    std::vector<frame_info> frames;
+    boost::circular_buffer<frame_info> frame_buffer;
 
+    serial_port sp;
 
-    void refresh_frames();
 
     void filte_image(cv::Mat &im, uint8_t color);
 
     bool locate_target(cv::Mat &im);
 
-    void record_info(frame_info frameInfo);
-
     bool contour_valid(std::vector<cv::Point> &contour);
 
     void drawContour_Rec(cv::RotatedRect rect, cv::Mat &src);
-
 
 };
 
