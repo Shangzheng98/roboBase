@@ -1,3 +1,7 @@
+echo "** Remove other OpenCV first"
+sudo sudo apt-get purge *libopencv*
+
+
 echo "** Install requirement"
 sudo apt-get update
 sudo apt-get install -y build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
