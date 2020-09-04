@@ -30,7 +30,7 @@ echo "** Download lateste opencv"
 git clone https://github.com/opencv/opencv.git
 git clone https://github.com/opencv/opencv_contrib.git
 unzip opencv*
-cd opencv*
+cd opencv-*
 
 echo "** Apply patch"
 sed -i 's/include <Eigen\/Core>/include <eigen3\/Eigen\/Core>/g' modules/core/include/opencv2/core/private.hpp
