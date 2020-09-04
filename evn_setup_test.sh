@@ -39,11 +39,11 @@ echo "** Building..."
 mkdir release
 cd release/
 cmake -D WITH_CUDA=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib*/modules -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local ..
-make -j3
+make -j4
 sudo make install
 #echo 'export PYTHONPATH=$PYTHONPATH:'$PWD'/python_loader/' >> ~/.bashrc
 #source ~/.bashrc
-echo "** Install opencv-4.1.1 successfully"
+echo "** Install opencv successfully"
 
 git clone https://github.com/Tencent/rapidjson.git
 cd rapidjson/
