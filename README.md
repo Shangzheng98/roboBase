@@ -1,6 +1,6 @@
 # Robobase
 
-Robobase is a costumed program including communicating with stm32 development board and computer vision part using C++ and OpenCV library 
+Robobase is a custumed program including communicating with stm32 development board and computer vision part using C++ and OpenCV library 
 
 ## Installation
 install on Jetson Nano platform:
