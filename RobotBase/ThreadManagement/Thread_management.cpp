@@ -28,7 +28,7 @@ ThreadManagement::ThreadManagement() {
 
 void ThreadManagement::ImageProduce() {
     cout << " ------  CAMERA PRODUCE TASK ON !!! ------ " << endl;
-    while (1) {
+    while (running_) {
         cv::Mat frame;
         daheng->getImage(frame);
         buffer_lock.lock();
@@ -41,12 +41,13 @@ void ThreadManagement::ImageProduce() {
 void ThreadManagement::AutoAim() {
 
 
-    while (1) {
+    while (running_) {
         //auto time0 = static_cast<double>(getTickCount());
 
         {
             std::unique_lock<std::mutex> lck_a(aim_mtx);
-            cond_aim.wait(lck_a, [this]{ return aim_ready; });
+            cond_aim.wait(lck_a, [this]{ return aim_ready || !running_; });
+            if (!running_) break;
         }
         printf("aim work\n");
 
@@ -71,11 +72,12 @@ void ThreadManagement::AutoAim() {
 void ThreadManagement::Bigbuff() {
     BigbufDetector bigebufDetector(serialPort);
 
-    while (1) {
+    while (running_) {
 
         {
             std::unique_lock<std::mutex> lck_b(buff_mtx);
-            cond_buff.wait(lck_b, [this]{ return buff_ready; });
+            cond_buff.wait(lck_b, [this]{ return buff_ready || !running_; });
+            if (!running_) break;
         }
         printf("buff work\n");
         //sleep(2);
@@ -94,24 +96,29 @@ void ThreadManagement::Bigbuff() {
 }
 
 void ThreadManagement::Communication_thread() {
-    int c;
-    while ((c = getchar()) != 'q')
-    {
-        switch(c)
-        {
-            case 'a':
-                pause('b');
-                sleep(1);
-                resume('a');
-                break;
-            case 'b':
-                pause('a');
-                sleep(1);
-                resume('b');
-                break;
+    uint8_t last_mode = otherParam.mode;
+    while (running_) {
+        serial_recive_data recv;
+        serialPort.recive_data(recv);
+
+        // 校验帧头
+        if ((uint8_t)recv.rawData[0] != 0xaf) continue;
+
+        // rawData 布局：[0]=head [1]=id [2]=robot_id [3]=level [4]=vison_mode
+        uint8_t new_mode = (uint8_t)recv.rawData[4];
+        if (new_mode == last_mode) continue;
+        last_mode = new_mode;
+
+        if (new_mode == AUTOAIM) {
+            pause('b');
+            sleep(1);
+            resume('a');
+        } else if (new_mode == BIGBUFF) {
+            pause('a');
+            sleep(1);
+            resume('b');
         }
     }
-
 }
  void ThreadManagement::pause(char x) {
     if (x == 'a')
@@ -149,7 +156,9 @@ void ThreadManagement::Communication_thread() {
 }
 
  void ThreadManagement::stop() {
-
+    running_ = false;
+    cond_aim.notify_all();   // 唤醒阻塞在条件变量上的线程，使其检查 running_ 后退出
+    cond_buff.notify_all();
 }
 ThreadManagement::~ThreadManagement() {
     delete daheng;

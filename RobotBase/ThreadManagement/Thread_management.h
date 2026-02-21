@@ -6,6 +6,7 @@
 #define ROBOTBASE_THREAD_MANAGEMENT_H
 
 #include <stdlib.h>
+#include <atomic>
 #include <boost/thread/mutex.hpp>
 #include <boost/circular_buffer.hpp>
 #include "../vision/autoAim/autoAim.h"
@@ -45,6 +46,7 @@ private:
     std::condition_variable cond_buff;
     bool aim_ready = false;
     bool buff_ready = false;
+    std::atomic<bool> running_{true};  // 线程优雅退出标志
     ArmorDetector armorDetector;
 };
 

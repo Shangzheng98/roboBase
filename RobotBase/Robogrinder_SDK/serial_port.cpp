@@ -62,13 +62,46 @@ serial_port::serial_port(char *serial_name, int buadrate) {
 void serial_port::send_data(const struct serial_gimbal_data &data) {
     int re = write(fd, data.rawData, data.size);
     if (data.size != re) {
-        //std::cout << "!!! send data failure !!!" << fd << std::endl;
+        printf("!!! send data failure, attempting reconnect...\n");
+        restart_serial_port();
     }
 }
 
 
 void serial_port::restart_serial_port() {
+    if (fd != -1) {
+        close(fd);
+        fd = -1;
+    }
+    fd = open(serial_name_, O_RDWR | O_NOCTTY | O_SYNC);
+    if (fd == -1) {
+        printf("!!! failed to reopen %s\n", serial_name_);
+        success_ = false;
+        return;
+    }
+    fcntl(fd, F_SETFL, 0);
 
+    struct termios port_settings;
+    cfsetispeed(&port_settings, buadrate_);
+    cfsetospeed(&port_settings, buadrate_);
+    port_settings.c_cflag = (port_settings.c_cflag & ~CSIZE) | CS8;
+    port_settings.c_iflag &= ~IGNBRK;
+    port_settings.c_lflag = 0;
+    port_settings.c_cc[VMIN] = 0;
+    port_settings.c_cc[VTIME] = 5;
+    port_settings.c_iflag &= ~(IXON | IXOFF | IXANY);
+    port_settings.c_cflag |= (CLOCAL | CREAD);
+    port_settings.c_cflag &= ~(PARENB | PARODD);
+    port_settings.c_cflag |= 0;
+    port_settings.c_cflag &= ~CSTOPB;
+    port_settings.c_cflag &= ~CRTSCTS;
+    port_settings.c_iflag = ICANON;
+    port_settings.c_cc[VMIN] = 10;
+    port_settings.c_cc[VTIME] = 5;
+    tcsetattr(fd, TCSANOW, &port_settings);
+
+    success_ = true;
+    printf("serial port %s reconnected\n", serial_name_);
 }
 
 void serial_port::recive_data(struct serial_recive_data &receiveData) {
