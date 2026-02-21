@@ -70,7 +70,7 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, const cv::Rect &roi) {
     threshold(gray, binary_brightness_img, gray_th_, 255, THRESH_BINARY);
     threshold(color_result_img, binary_color_img, color_th_, 255, THRESH_BINARY);
 
-#if SHOW_BINART
+#if SHOW_BINARY
     imshow("binary_brightness_img", binary_brightness_img);
     imshow("binary_color_img", binary_color_img);
 #endif
