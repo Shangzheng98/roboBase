@@ -40,13 +40,14 @@ void armor::draw_spot(Mat &img, Point2f roi_offset_point) const {
 }
 
 bool armor::is_suitable_size() {
-    auto light_dis = std::sqrt((led_bars[0].rect.center.x - led_bars[1].rect.center.x) *
-                                  (led_bars[0].rect.center.x - led_bars[1].rect.center.x) +
-                                  (led_bars[0].rect.center.y - led_bars[1].rect.center.y) *
-                                  (led_bars[0].rect.center.y - led_bars[1].rect.center.y));
+    // PERF-4: use squared distance to avoid sqrt
+    auto light_dis_sq = (led_bars[0].rect.center.x - led_bars[1].rect.center.x) *
+                        (led_bars[0].rect.center.x - led_bars[1].rect.center.x) +
+                        (led_bars[0].rect.center.y - led_bars[1].rect.center.y) *
+                        (led_bars[0].rect.center.y - led_bars[1].rect.center.y);
 
     if (led_bars[0].rect.size.height * 0.7f < led_bars[1].rect.size.height
-        && led_bars[0].rect.size.height * 1.3f > led_bars[1].rect.size.height && light_dis < 575.0f) {
+        && led_bars[0].rect.size.height * 1.3f > led_bars[1].rect.size.height && light_dis_sq < 575.0f * 575.0f) {
         float armor_width = fabs(led_bars[0].rect.center.x - led_bars[1].rect.center.x);
 
         if (armor_width > led_bars[0].rect.size.width
@@ -68,12 +69,13 @@ bool armor::is_suitable_size() {
 
 void armor::max_match(std::vector<LED_bar> &LEDs, size_t i, size_t j) {
     RotatedRect R, L;
-    if (LEDs[0].rect.center.x > LEDs[1].rect.center.x) {
-        R = LEDs[0].rect;
-        L = LEDs[1].rect;
+    // BUG-5: use actual parameters i/j instead of hardcoded 0/1
+    if (LEDs[i].rect.center.x > LEDs[j].rect.center.x) {
+        R = LEDs[i].rect;
+        L = LEDs[j].rect;
     } else {
-        R = LEDs[1].rect;
-        L = LEDs[0].rect;
+        R = LEDs[j].rect;
+        L = LEDs[i].rect;
     }
     float angle = L.angle - R.angle;
     if (angle < 1e-3f) {

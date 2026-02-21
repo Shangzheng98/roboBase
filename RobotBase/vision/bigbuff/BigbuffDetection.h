@@ -42,13 +42,19 @@ public:
     int OFFSET_PITCH = 3600;
 
     // constructor: information about camera
-    BigbufDetector( serial_port sp);
+    BigbufDetector(serial_port &sp);  // PERF-3: pass by reference
 
     ~BigbufDetector ()= default;
 
     void feed_im(cv::Mat &input_image,OtherParam othter_param);
 
     void make_prediction();
+
+    // QUAL-1: 允许从外部注入标定参数，替代硬编码值
+    void setCameraParams(const cv::Mat &cm, const cv::Mat &dc) {
+        cameraMatrix = cm.clone();
+        distCoeffs   = dc.clone();
+    }
 
 public:
     int color_th_ = 130;//131
@@ -76,6 +82,10 @@ private:
             << -0.2126367859619807, 0.2282910064864265, 0.0020583387355406, 0.0006136511397638, -0.7559987171745171);
 
     boost::circular_buffer<frame_info> frame_buffer;
+
+    // PERF: 预计算形态学核，避免每帧 getStructuringElement 重复分配
+    cv::Mat dilate_kernel_5_;
+    cv::Mat erode_kernel_3_;
 
     serial_port sp;
 
