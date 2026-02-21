@@ -8,6 +8,13 @@ using namespace std;
 ThreadManagement::ThreadManagement() {
     cout << "THEAD START WORKING !!!" << endl;
     buffer.set_capacity(SIZE_);
+
+    // QUAL-2: 从 config.json 加载标定参数，注入给检测器
+    loadConfig();
+    if (!cam_matrix_.empty()) {
+        armorDetector.setCameraParams(cam_matrix_, dist_coeffs_);
+    }
+
     daheng = new Daheng();
     if (daheng->init() == 0) {
         printf("fail to init Daheng camera library\n");
@@ -71,6 +78,9 @@ void ThreadManagement::AutoAim() {
 
 void ThreadManagement::Bigbuff() {
     BigbufDetector bigebufDetector(serialPort);
+    if (!cam_matrix_.empty()) {
+        bigebufDetector.setCameraParams(cam_matrix_, dist_coeffs_);
+    }
 
     while (running_) {
 
@@ -160,6 +170,33 @@ void ThreadManagement::Communication_thread() {
     cond_aim.notify_all();   // 唤醒阻塞在条件变量上的线程，使其检查 running_ 后退出
     cond_buff.notify_all();
 }
+void ThreadManagement::loadConfig() {
+    // QUAL-2: 用 OpenCV FileStorage 读取 config.json（JSON 格式支持 OpenCV 3.1+）
+    cv::FileStorage fs("config.json", cv::FileStorage::READ | cv::FileStorage::FORMAT_JSON);
+    if (!fs.isOpened()) {
+        printf("Warning: config.json not found, using hardcoded camera params\n");
+        return;
+    }
+
+    std::vector<double> cmVals, dcVals;
+    cv::FileNode cmNode = fs["cameraMatrix"];
+    for (auto it = cmNode.begin(); it != cmNode.end(); ++it)
+        cmVals.push_back(static_cast<double>(*it));
+
+    cv::FileNode dcNode = fs["distCoeffs"];
+    for (auto it = dcNode.begin(); it != dcNode.end(); ++it)
+        dcVals.push_back(static_cast<double>(*it));
+
+    if (cmVals.size() == 9 && dcVals.size() == 5) {
+        cam_matrix_ = cv::Mat(3, 3, CV_64F, cmVals.data()).clone();
+        dist_coeffs_ = cv::Mat(1, 5, CV_64F, dcVals.data()).clone();
+        printf("Camera params loaded from config.json\n");
+    } else {
+        printf("Warning: invalid camera params in config.json, using hardcoded defaults\n");
+    }
+    fs.release();
+}
+
 ThreadManagement::~ThreadManagement() {
     delete daheng;
 }

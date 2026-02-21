@@ -50,6 +50,12 @@ public:
 
     void make_prediction();
 
+    // QUAL-1: 允许从外部注入标定参数，替代硬编码值
+    void setCameraParams(const cv::Mat &cm, const cv::Mat &dc) {
+        cameraMatrix = cm.clone();
+        distCoeffs   = dc.clone();
+    }
+
 public:
     int color_th_ = 130;//131
     int gray_th_ = 25;//24

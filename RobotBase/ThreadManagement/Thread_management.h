@@ -33,6 +33,7 @@ private:
     void pause(char x);
     void resume(char x);
     void stop();
+    void loadConfig();              // QUAL-2: 从 config.json 读取标定参数
     char name[20] = "/dev/ttyUSB0";
     const int SIZE_ = 30;
     boost::circular_buffer<cv::Mat> buffer;
@@ -47,6 +48,8 @@ private:
     bool aim_ready = false;
     bool buff_ready = false;
     std::atomic<bool> running_{true};  // 线程优雅退出标志
+    cv::Mat cam_matrix_;            // QUAL-2: 从 config.json 加载的相机内参
+    cv::Mat dist_coeffs_;           // QUAL-2: 从 config.json 加载的畸变系数
     ArmorDetector armorDetector;
 };
 
