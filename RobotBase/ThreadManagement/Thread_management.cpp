@@ -129,6 +129,11 @@ void ThreadManagement::Communication_thread() {
 }
 
  void ThreadManagement::resume(char x) {
+     // 切换模式前清空缓冲区，防止新检测器处理 sleep(1) 期间积累的旧帧
+     buffer_lock.lock();
+     buffer.clear();
+     buffer_lock.unlock();
+
      if (x == 'a')
      {
          std::unique_lock <std::mutex> lck(aim_mtx);
