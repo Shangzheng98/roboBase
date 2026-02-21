@@ -44,11 +44,9 @@ void ThreadManagement::AutoAim() {
     while (1) {
         //auto time0 = static_cast<double>(getTickCount());
 
-        while(!aim_ready)
         {
-            printf("aim wait\n");
             std::unique_lock<std::mutex> lck_a(aim_mtx);
-            cond_aim. wait(lck_a);
+            cond_aim.wait(lck_a, [this]{ return aim_ready; });
         }
         printf("aim work\n");
 
@@ -75,12 +73,9 @@ void ThreadManagement::Bigbuff() {
 
     while (1) {
 
-        while(!buff_ready)
         {
-            printf("buff wait\n");
-            //sleep(1);
             std::unique_lock<std::mutex> lck_b(buff_mtx);
-            cond_buff.wait(lck_b);
+            cond_buff.wait(lck_b, [this]{ return buff_ready; });
         }
         printf("buff work\n");
         //sleep(2);

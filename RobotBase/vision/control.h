@@ -15,7 +15,8 @@
 #define SHOW_DRAW_SPOT 1
 #define SHOW_LAST_TARGET 1
 
-
+// PERF-1: master switch — any SHOW_* flag being 1 enables debug display (imshow/waitKey)
+#define DEBUG_DISPLAY (SHOW_BINART || SHOW_LIGHT_CONTOURS || SHOW_FINAL_ARMOR || SHOW_ROI || SHOW_DRAW_SPOT || SHOW_LAST_TARGET)
 
 
 #endif //ROBOTBASE_CONTROL_H

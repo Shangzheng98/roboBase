@@ -42,7 +42,7 @@ public:
     int OFFSET_PITCH = 3600;
 
     // constructor: information about camera
-    BigbufDetector( serial_port sp);
+    BigbufDetector(serial_port &sp);  // PERF-3: pass by reference
 
     ~BigbufDetector ()= default;
 

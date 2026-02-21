@@ -5,7 +5,7 @@
 #include "BigbuffDetection.h"
 
 
-BigbufDetector::BigbufDetector( serial_port sp) {
+BigbufDetector::BigbufDetector(serial_port &sp) {
     /// solvepnp Data
     x = -width / 2;
     y = height / 2;
@@ -24,6 +24,7 @@ BigbufDetector::BigbufDetector( serial_port sp) {
     z = 0;
     this->real_armor_points.emplace_back(x, y, z);
     this->sp = sp;
+    this->frame_buffer.set_capacity(10);  // BUG-2: initialize buffer capacity
     cv::createTrackbar("offset_YAW", "offset", &this->OFFSET_YAW, 3600);
     cv::createTrackbar("offset_PITCH", "offset", &this->OFFSET_PITCH, 3600);
 }
@@ -148,6 +149,7 @@ bool BigbufDetector::locate_target(cv::Mat &im) {
             target.angular_vector = a_vector;
             target.f_time = clock();
             target.armor_points = armor_points;
+            frame_buffer.push_back(target);  // BUG-2: push to frame_buffer
             return true;
         }
     }
@@ -171,8 +173,10 @@ void BigbufDetector::feed_im(cv::Mat &input_image,OtherParam othter_param) {
 
     make_prediction();
 
+#if DEBUG
     cv::imshow("bigbuff", this->image);
     cv::waitKey(1);
+#endif
 }
 
 
@@ -183,7 +187,7 @@ void BigbufDetector::make_prediction() {
     cv::Point3f target_3d;
     target_3d = cv::Point3f(tvec);
     int pitch = int((atan2(target_3d.y - 80, target_3d.z) + (float) (OFFSET_PITCH * CV_PI / 1800)) * 0.6 * 10000);
-    int yaw = int((-atan2(target_3d.x, target_3d.z) + (float) (OFFSET_PITCH * CV_PI / 1800)) * 0.6 * 10000);
+    int yaw = int((-atan2(target_3d.x, target_3d.z) + (float) (OFFSET_YAW * CV_PI / 1800)) * 0.6 * 10000);  // BUG-1: was OFFSET_PITCH
     DISP("yaw" << yaw);
     DISP("pitch" << pitch);
     serial_gimbal_data data;

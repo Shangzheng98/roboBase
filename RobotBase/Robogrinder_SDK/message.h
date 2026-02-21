@@ -27,7 +27,7 @@ struct serial_recive_data
     char rawData[10];
     int head = 0xaf;
     int id = 3;
-    int size;
+    int size = 10;  // BUG-6: initialize to match rawData array size
 };
 
 struct gimbal_msg

@@ -57,7 +57,7 @@ public:
     }
     ~ArmorDetector() = default;
 
-    int armorTask(cv::Mat &img, OtherParam other_param, serial_port sp);
+    void armorTask(cv::Mat &img, OtherParam other_param, serial_port &sp);  // BUG-4: void; PERF-3: ref
 
     bool DetectArmor(cv::Mat &img, const cv::Rect& roi);
 

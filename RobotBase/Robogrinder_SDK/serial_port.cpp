@@ -73,8 +73,7 @@ void serial_port::restart_serial_port() {
 
 void serial_port::recive_data(struct serial_recive_data &receiveData) {
     tcflush(fd, TCIFLUSH);
-    uint8_t buffer[10];
-    int re = read(fd,receiveData.rawData, receiveData.size);
+    int re = read(fd, receiveData.rawData, receiveData.size);  // QUAL-5: removed dead buffer[10]
     if (receiveData.size != re){
         std::cout<< "!!! receive data failure !!!"<< std::endl;
     }

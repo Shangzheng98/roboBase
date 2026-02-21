@@ -238,12 +238,14 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, const cv::Rect &roi) {
     }
     detect_count++;
 
+#if DEBUG_DISPLAY  // PERF-1: only render when debug visualization is enabled
     imshow("debug_img", debug_img);
     waitKey(1);
+#endif
     return found_flag;
 }
 
-int ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port sp) {
+void ArmorDetector::armorTask(cv::Mat &color, OtherParam other_param, serial_port &sp) {  // BUG-4: void; PERF-3: ref
     color_ = other_param.color;
     mode_ = other_param.mode;
     level_ = other_param.level;
