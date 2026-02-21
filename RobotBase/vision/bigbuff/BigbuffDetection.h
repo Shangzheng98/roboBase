@@ -83,6 +83,10 @@ private:
 
     boost::circular_buffer<frame_info> frame_buffer;
 
+    // PERF: 预计算形态学核，避免每帧 getStructuringElement 重复分配
+    cv::Mat dilate_kernel_5_;
+    cv::Mat erode_kernel_3_;
+
     serial_port sp;
 
 

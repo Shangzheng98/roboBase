@@ -51,8 +51,13 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, const cv::Rect &roi) {
     vector<Mat> BGR_channels;
     vector<LED_bar> LED_bars;
     bool found_flag = false;
-    Mat binary_brightness_img, binary_color_img, gray, debug_img, color_result_img;;
-    debug_img = img.clone();
+    Mat binary_brightness_img, binary_color_img, gray, color_result_img;
+    // PERF-2: 仅在需要可视化调试时才克隆整帧；DEBUG_DISPLAY=0 时省掉每帧全分辨率拷贝
+#if DEBUG_DISPLAY
+    Mat debug_img = img.clone();
+#else
+    Mat debug_img;  // 不拷贝；所有 SHOW_* 宏为 0 时此 Mat 不会被使用
+#endif
 
     cvtColor(roi_image, gray, COLOR_BGR2GRAY);
     split(roi_image, BGR_channels);
@@ -174,8 +179,11 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, const cv::Rect &roi) {
         dx = fabs(final_armor_list.at(i).center.x - roi_center.x);
         dy = fabs(final_armor_list.at(i).center.y - roi_center.y);
 #else
-        dx = pow((i.center.x - roi_center.x), 2.0f);
-        dy = pow((i.center.y - roi_center.y), 2.0f);
+        // PERF: pow(x,2) 比直接乘法慢，改用临时变量避免重复求值
+        float ddx = i.center.x - roi_center.x;
+        float ddy = i.center.y - roi_center.y;
+        dx = ddx * ddx;
+        dy = ddy * ddy;
 #endif
         if (dx + dy < dist) {
             target = i;
@@ -216,8 +224,10 @@ bool ArmorDetector::DetectArmor(cv::Mat &img, const cv::Rect &roi) {
         for (int i = 0; i < 4; i++) {
             points_roi_tmp.push_back(point_2d[i] + offset_roi_point);
             final_armor_2Dpoints.push_back(point_2d[i] + offset_roi_point);
+#if DEBUG_DISPLAY  // 保护：debug_img 在 DEBUG_DISPLAY=0 时为空 Mat
             circle(debug_img, final_armor_2Dpoints.at(i), 5, Scalar(255, 255, 255), -1);
             circle(debug_img, final_armor_2Dpoints.at(i), 3, Scalar(i * 50, i * 50, 255), -1);
+#endif
         }
 
         float armor_h = target.rect.height;

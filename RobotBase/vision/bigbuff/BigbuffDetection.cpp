@@ -25,6 +25,9 @@ BigbufDetector::BigbufDetector(serial_port &sp) {
     this->real_armor_points.emplace_back(x, y, z);
     this->sp = sp;
     this->frame_buffer.set_capacity(10);  // BUG-2: initialize buffer capacity
+    // PERF: 预计算形态学核，避免 filte_image 每帧重新分配
+    this->dilate_kernel_5_ = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
+    this->erode_kernel_3_  = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
     cv::createTrackbar("offset_YAW", "offset", &this->OFFSET_YAW, 3600);
     cv::createTrackbar("offset_PITCH", "offset", &this->OFFSET_PITCH, 3600);
 }
@@ -53,9 +56,10 @@ void BigbufDetector::filte_image(cv::Mat &im,uint8_t color) {
     //SHOW_IM("binary_color_img", binary_color_img);
     im = binary_color_img & binary_brightness_img;
 
-    cv::dilate(im, im, getStructuringElement(0, cv::Size(5, 5)));
+    // PERF: 使用预计算核，避免每帧重复调用 getStructuringElement
+    cv::dilate(im, im, dilate_kernel_5_);
     cv::dilate(im, im, cv::Mat());
-    cv::erode(im, im, getStructuringElement(0, cv::Size(3, 3)));
+    cv::erode(im, im, erode_kernel_3_);
 }
 
 
@@ -101,9 +105,9 @@ bool BigbufDetector::locate_target(cv::Mat &im) {
 
 
     std::vector<std::vector<cv::Point>> contours;
-    std::vector<cv::Vec4i> hierarcy;
+    std::vector<cv::Vec4i> hierarchy;  // QUAL-9: 修正拼写错误
 
-    cv::findContours(im, contours, hierarcy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(im, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
 
 
     for (int ind = 0; ind < contours.size(); ind++) {
@@ -121,8 +125,8 @@ bool BigbufDetector::locate_target(cv::Mat &im) {
             cv::Point2f direc = cv::Point2f(line[0], line[1]);
 
             cv::Point2f v = rect.center - mass_ctr;
+            // PERF: fitLine 返回的方向向量已是单位向量，无需再做归一化
             v = (direc.dot(v) > 0) ? (direc) : (-direc);
-            v = v / sqrt(v.dot(v)); //normalize
             float long_side = (rect.size.height > rect.size.width) ? (rect.size.height) : (rect.size.width);
             cv::Point2f c_R = mass_ctr + (long_side * 13 / 14) * v;
             cv::Point2f a_vector = mass_ctr - (long_side * 1 / 5) * v;
@@ -130,12 +134,12 @@ bool BigbufDetector::locate_target(cv::Mat &im) {
             cv::circle(im, c_R, 4, cv::Scalar(255, 255, 255), 2);
             cv::circle(im, a_vector, 1, cv::Scalar(255, 255, 255), 1);
 
-            if (hierarcy[ind][2] == -1) {
+            if (hierarchy[ind][2] == -1) {
                 std::cout << "None" << std::endl;
                 return false;
             }
 
-            cv::RotatedRect inner_rect = cv::minAreaRect(contours[hierarcy[ind][2]]);
+            cv::RotatedRect inner_rect = cv::minAreaRect(contours[hierarchy[ind][2]]);
             cv::ellipse(this->RGBim, inner_rect, cv::Scalar(0, 0, 255), 3);
             SHOW_IM("RGB", this->RGBim);
             cv::Point2f rect_points[4];
